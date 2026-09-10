@@ -1,11 +1,12 @@
 import SwiftUI
 import AppKit
 
-/// 遵循 Yaology 极简美学的悬浮控制面板 (v1.1.1)
-/// 完美自适应 macOS 浅色/深色主题，彻底杜绝黑角与对比度模糊问题
+/// 遵循 Yaology 极简美学的悬浮控制面板 (v1.2.0)
+/// 完美自适应 macOS 浅色/深色主题，全界面支持中英双语与即时护眼预览
 public struct TasteSkillPopOverView: View {
     @ObservedObject var stateMachine = SiriusStateMachine.shared
     @ObservedObject var preferences = SiriusPreferences.shared
+    @ObservedObject var locManager = LocalizationManager.shared
 
     private let cooldownPresets: [TimeInterval] = [1.0, 3.0, 5.0, 8.0]
 
@@ -20,7 +21,7 @@ public struct TasteSkillPopOverView: View {
                         .font(.system(size: 17, weight: .bold, design: .serif))
                         .foregroundColor(.primary)
                         .tracking(-0.3)
-                    Text("Mac 多屏引力调光 · α CMa")
+                    Text(loc("Mac 多屏引力调光 · α CMa", "Mac Dual-Display Dimmer · α CMa"))
                         .font(.system(size: 9, weight: .medium))
                         .foregroundColor(.secondary)
                 }
@@ -39,7 +40,7 @@ public struct TasteSkillPopOverView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .help("打开设置 (⌘,)")
+                .help(loc("打开设置 (⌘,)", "Open Settings (⌘,)"))
             }
 
             // MARK: - 动态双星引力状态图
@@ -53,7 +54,7 @@ public struct TasteSkillPopOverView: View {
                     HStack(spacing: 5) {
                         Image(systemName: preferences.isPaused ? "play.fill" : "pause.fill")
                             .font(.system(size: 10, weight: .medium))
-                        Text(preferences.isPaused ? "恢复调光" : "快捷暂停")
+                        Text(preferences.isPaused ? loc("恢复调光", "Resume") : loc("快捷暂停", "Pause"))
                             .font(.system(size: 11, weight: .medium))
                         Text(preferences.hotKeyDisplayString)
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
@@ -76,12 +77,12 @@ public struct TasteSkillPopOverView: View {
                 )
 
                 Menu {
-                    Button("暂停 30 分钟") { stateMachine.pauseTemporarily(duration: 30 * 60) }
-                    Button("暂停 1 小时") { stateMachine.pauseTemporarily(duration: 60 * 60) }
-                    Button("暂停至明天 9:00") { stateMachine.pauseTemporarily(duration: 12 * 60 * 60) }
+                    Button(loc("暂停 30 分钟", "Pause for 30 min")) { stateMachine.pauseTemporarily(duration: 30 * 60) }
+                    Button(loc("暂停 1 小时", "Pause for 1 hour")) { stateMachine.pauseTemporarily(duration: 60 * 60) }
+                    Button(loc("暂停至明天 9:00", "Pause until 9:00 AM tomorrow")) { stateMachine.pauseTemporarily(duration: 12 * 60 * 60) }
                 } label: {
                     HStack(spacing: 4) {
-                        Text("定时暂停")
+                        Text(loc("定时暂停", "Timer"))
                             .font(.system(size: 11, weight: .medium))
                         Image(systemName: "chevron.down")
                             .font(.system(size: 8, weight: .semibold))
@@ -112,7 +113,7 @@ public struct TasteSkillPopOverView: View {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 10))
                             .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
-                        Text("琥珀微光 (低蓝光护眼)")
+                        Text(loc("琥珀微光 (低蓝光护眼)", "Amber Ambient (Eye Care)"))
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.primary)
                     }
@@ -121,12 +122,15 @@ public struct TasteSkillPopOverView: View {
                         .toggleStyle(.switch)
                         .scaleEffect(0.65)
                         .frame(height: 18)
+                        .onChange(of: preferences.amberAmbientEnabled) { _, enabled in
+                            stateMachine.handleAmberAmbientToggled(enabled: enabled)
+                        }
                 }
 
                 if preferences.amberAmbientEnabled {
                     VStack(spacing: 3) {
                         HStack {
-                            Text("色温强度")
+                            Text(loc("色温强度", "Warmth Intensity"))
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -137,13 +141,17 @@ public struct TasteSkillPopOverView: View {
                         }
 
                         Slider(
-                            value: $preferences.amberTemperatureK,
+                            value: Binding(
+                                get: { preferences.amberTemperatureK },
+                                set: { newK in
+                                    preferences.amberTemperatureK = newK
+                                    ColorTemperatureEngine.shared.previewTemperature(kelvin: newK)
+                                }
+                            ),
                             in: 2500...5500,
-                            step: 100,
+                            step: 50,
                             onEditingChanged: { editing in
-                                if editing {
-                                    stateMachine.previewAmberTemperature(kelvin: preferences.amberTemperatureK)
-                                } else {
+                                if !editing {
                                     stateMachine.endPreviewAmberTemperature()
                                 }
                             }
@@ -151,11 +159,11 @@ public struct TasteSkillPopOverView: View {
                         .tint(Color(red: 0.98, green: 0.65, blue: 0.22))
 
                         HStack {
-                            Text("2500K 烛光")
+                            Text(loc("2500K 烛光", "2500K Candle"))
                                 .font(.system(size: 8.5))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text("5500K 温和")
+                            Text(loc("5500K 温和", "5500K Mild"))
                                 .font(.system(size: 8.5))
                                 .foregroundColor(.secondary)
                         }
@@ -179,7 +187,7 @@ public struct TasteSkillPopOverView: View {
                         Image(systemName: "timer")
                             .font(.system(size: 10))
                             .foregroundColor(Color.accentColor)
-                        Text("离开延时 (防抖缓冲)")
+                        Text(loc("离开延时 (防抖缓冲)", "Cooldown Delay (Buffer)"))
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.primary)
                     }
@@ -195,7 +203,7 @@ public struct TasteSkillPopOverView: View {
                         Button(action: {
                             preferences.cooldownDelay = seconds
                         }) {
-                            Text("\(Int(seconds))s\(seconds == 3.0 ? " (推)" : "")")
+                            Text("\(Int(seconds))s\(seconds == 3.0 ? loc(" (推)", " (Rec)") : "")")
                                 .font(.system(size: 10, weight: abs(preferences.cooldownDelay - seconds) < 0.1 ? .bold : .medium))
                                 .monospacedDigit()
                                 .frame(maxWidth: .infinity)
@@ -216,7 +224,7 @@ public struct TasteSkillPopOverView: View {
                         Button(action: {
                             SettingsWindowController.shared.showSettings()
                         }) {
-                            Text(String(format: "%.1fs (自定)", preferences.cooldownDelay))
+                            Text(String(format: loc("%.1fs (自定)", "%.1fs (Custom)"), preferences.cooldownDelay))
                                 .font(.system(size: 10, weight: .bold))
                                 .monospacedDigit()
                                 .padding(.horizontal, 6)
@@ -242,7 +250,7 @@ public struct TasteSkillPopOverView: View {
 
             // MARK: - 底部栏：版本信息 & 退出
             HStack(alignment: .center) {
-                Text("Sirius v1.1.1 · α CMa")
+                Text("Sirius v1.2.0 · α CMa")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .monospacedDigit()
                     .foregroundColor(.secondary.opacity(0.7))
@@ -255,7 +263,7 @@ public struct TasteSkillPopOverView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "power")
                             .font(.system(size: 9, weight: .semibold))
-                        Text("退出 Sirius")
+                        Text(loc("退出 Sirius", "Quit Sirius"))
                             .font(.system(size: 10, weight: .medium))
                     }
                     .foregroundColor(.red.opacity(0.85))

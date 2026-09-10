@@ -227,6 +227,6 @@ public final class MenuBarManager: NSObject {
         }
 
         button.image = StarIconGenerator.createIcon(isDimmed: isDimmed, isPaused: isPaused)
-        button.toolTip = "Sirius (天狼星双星调光 · v1.1.1)\n\(state.description)\n⌥-点击可快速暂停/恢复"
+        button.toolTip = "\(loc("Sirius (天狼星双星调光 · v1.2.0)", "Sirius (Dual-Display Dimmer · v1.2.0)"))\n\(state.localizedDescription)\n\(loc("⌥-点击可快速暂停/恢复", "⌥-Click to pause or resume"))"
     }
 }

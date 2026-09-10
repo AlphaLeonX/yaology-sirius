@@ -98,17 +98,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 2. 弹出原生确认提示弹窗
         let alert = NSAlert()
-        alert.messageText = "退出 Sirius"
-        alert.informativeText = "是否需要在退出前将所有调光、色温与快捷键配置重置为出厂默认值？"
+        alert.messageText = loc("退出 Sirius", "Quit Sirius")
+        alert.informativeText = loc(
+            "是否需要在退出前将所有调光、色温与快捷键配置重置为出厂默认值？",
+            "Do you want to reset all dimming, color temperature, and shortcut settings to factory defaults before quitting?"
+        )
         alert.alertStyle = .informational
 
-        let keepBtn = alert.addButton(withTitle: "保留当前设置并退出")
+        let keepBtn = alert.addButton(withTitle: loc("保留当前设置并退出", "Keep Settings and Quit"))
         keepBtn.keyEquivalent = "\r"
 
-        alert.addButton(withTitle: "重置为默认值并退出")
+        alert.addButton(withTitle: loc("重置为默认值并退出", "Reset to Defaults and Quit"))
 
         alert.showsSuppressionButton = true
-        alert.suppressionButton?.title = "下次不再询问 (记住我的选择)"
+        alert.suppressionButton?.title = loc("下次不再询问 (记住我的选择)", "Do not ask again (Remember choice)")
 
         NSApp.activate(ignoringOtherApps: true)
         let response = alert.runModal()

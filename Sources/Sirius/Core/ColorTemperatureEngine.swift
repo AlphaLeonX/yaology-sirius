@@ -2,7 +2,8 @@ import Foundation
 import CoreGraphics
 import AppKit
 
-/// 负责通过 macOS 原生 CoreGraphics Gamma LUT 显卡查找表，直接驱动内建屏幕色温与低蓝光护眼
+/// 负责通过 macOS CoreBrightness (CBBlueLightClient) 硬件通道驱动内建屏幕色温与低蓝光护眼
+/// 在 Apple Silicon (M系列 Liquid Retina XDR) 及各类 Mac 上无视 WindowServer 拦截，毫秒级即时生效；并向下兜底 CoreGraphics Gamma LUT。
 public final class ColorTemperatureEngine: @unchecked Sendable {
     public static let shared = ColorTemperatureEngine()
 
@@ -10,7 +11,20 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     private let lock = NSLock()
     private var animationTimer: DispatchSourceTimer?
 
-    // 缓存显示器基准原始 Gamma 表 (256 采样点)
+    // MARK: - CoreBrightness 私有框架 Objective-C 桥接定义
+    private typealias SetEnabledFunc = @convention(c) (AnyObject, Selector, Bool) -> Bool
+    private typealias SetStrengthPeriodFunc = @convention(c) (AnyObject, Selector, Float, Float, Bool) -> Bool
+    private typealias SetStrengthCommitFunc = @convention(c) (AnyObject, Selector, Float, Bool) -> Bool
+
+    private let blueLightClient: AnyObject?
+    private let setEnabledFn: SetEnabledFunc?
+    private let setStrengthPeriodFn: SetStrengthPeriodFunc?
+    private let setStrengthCommitFn: SetStrengthCommitFunc?
+    private let setEnabledSel = NSSelectorFromString("setEnabled:")
+    private let setStrengthPeriodSel = NSSelectorFromString("setStrength:withPeriod:commit:")
+    private let setStrengthCommitSel = NSSelectorFromString("setStrength:commit:")
+
+    // 缓存显示器基准原始 Gamma 表 (兜底用，256 采样点)
     private var sampleCount: UInt32 = 0
     private var baselineRed: [CGGammaValue] = []
     private var baselineGreen: [CGGammaValue] = []
@@ -21,6 +35,40 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     private var currentWarmthProgress: Float = 0.0 // 0.0 (原生) ~ 1.0 (目标暖色)
 
     private init() {
+        // 1. 优先加载系统级 CoreBrightness 私有框架
+        Bundle(path: "/System/Library/PrivateFrameworks/CoreBrightness.framework")?.load()
+
+        if let clientClass = NSClassFromString("CBBlueLightClient") as? NSObject.Type {
+            let instance = clientClass.init()
+            self.blueLightClient = instance
+
+            if instance.responds(to: setEnabledSel) {
+                self.setEnabledFn = unsafeBitCast(instance.method(for: setEnabledSel), to: SetEnabledFunc.self)
+            } else {
+                self.setEnabledFn = nil
+            }
+
+            if instance.responds(to: setStrengthPeriodSel) {
+                self.setStrengthPeriodFn = unsafeBitCast(instance.method(for: setStrengthPeriodSel), to: SetStrengthPeriodFunc.self)
+            } else {
+                self.setStrengthPeriodFn = nil
+            }
+
+            if instance.responds(to: setStrengthCommitSel) {
+                self.setStrengthCommitFn = unsafeBitCast(instance.method(for: setStrengthCommitSel), to: SetStrengthCommitFunc.self)
+            } else {
+                self.setStrengthCommitFn = nil
+            }
+            print("[Sirius] ColorEngine: Successfully initialized hardware CBBlueLightClient.")
+        } else {
+            self.blueLightClient = nil
+            self.setEnabledFn = nil
+            self.setStrengthPeriodFn = nil
+            self.setStrengthCommitFn = nil
+            print("[Sirius] ColorEngine: CBBlueLightClient unavailable, falling back to Gamma LUT.")
+        }
+
+        // 2. 捕获基准色彩表兜底
         captureBaseline()
     }
 
@@ -33,7 +81,6 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             self.lock.lock()
             defer { self.lock.unlock() }
 
-            // 如果当前已经处于暖色态，不应覆盖真实的冷基准表
             if self.isCurrentlyWarm && !self.baselineRed.isEmpty {
                 return
             }
@@ -50,12 +97,18 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
                 self.baselineRed = Array(r.prefix(Int(count)))
                 self.baselineGreen = Array(g.prefix(Int(count)))
                 self.baselineBlue = Array(b.prefix(Int(count)))
-                print("[Sirius] ColorEngine: Captured native baseline Gamma table (\(count) samples).")
             }
         }
     }
 
-    /// 计算给定色温（Kelvin）下的 RGB 衰减乘数
+    /// 将色温 Kelvin (2500K ~ 5500K) 映射为硬件暖光强度 Strength (0.0 ~ 1.0)
+    /// 6500K 对应原生冷白光 (0.0)；5500K 对应轻微温和 (0.25)；3200K 对应经典琥珀 (0.825)；2500K 对应极致烛光 (1.0)
+    public static func kelvinToStrength(_ kelvin: Double) -> Float {
+        let clampedK = max(2500.0, min(5500.0, kelvin))
+        return Float(max(0.0, min(1.0, (6500.0 - clampedK) / 4000.0)))
+    }
+
+    /// 计算给定色温（Kelvin）下的 RGB 衰减乘数 (Gamma 兜底使用)
     public static func multipliers(for kelvin: Double) -> (r: Float, g: Float, b: Float) {
         let clampedK = max(2500.0, min(5500.0, kelvin))
         let w = Float((5500.0 - clampedK) / 3000.0) // 0.0 (5500K) ~ 1.0 (2500K)
@@ -65,23 +118,34 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
         return (r, g, b)
     }
 
-    /// 实时预览色温（供设置面板滑块拖拽时即时响应）
+    /// 实时预览色温（供设置面板滑块拖拽时即时响应，零延时无动画）
     public func previewTemperature(kelvin: Double) {
         queue.async { [weak self] in
             guard let self = self else { return }
-            guard let displayID = DisplayBridge.getBuiltinDisplayID() else { return }
 
             self.lock.lock()
             self.animationTimer?.cancel()
             self.animationTimer = nil
 
-            if self.baselineRed.isEmpty {
-                self.captureBaselineInternal(displayID: displayID)
+            let strength = Self.kelvinToStrength(kelvin)
+
+            if let client = self.blueLightClient, let setEnabled = self.setEnabledFn {
+                _ = setEnabled(client, self.setEnabledSel, true)
+                if let setStrengthCommit = self.setStrengthCommitFn {
+                    _ = setStrengthCommit(client, self.setStrengthCommitSel, strength, true)
+                } else if let setStrengthPeriod = self.setStrengthPeriodFn {
+                    _ = setStrengthPeriod(client, self.setStrengthPeriodSel, strength, 0.0, true)
+                }
+            } else if let displayID = DisplayBridge.getBuiltinDisplayID() {
+                if self.baselineRed.isEmpty {
+                    self.captureBaselineInternal(displayID: displayID)
+                }
+                let (rMult, gMult, bMult) = Self.multipliers(for: kelvin)
+                self.applyGammaMultipliers(displayID: displayID, rMult: rMult, gMult: gMult, bMult: bMult)
             }
 
-            let (rMult, gMult, bMult) = Self.multipliers(for: kelvin)
-            self.applyGammaMultipliers(displayID: displayID, rMult: rMult, gMult: gMult, bMult: bMult)
             self.isCurrentlyWarm = true
+            self.currentWarmthProgress = 1.0
             self.lock.unlock()
         }
     }
@@ -90,14 +154,41 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     public func transitionToWarm(kelvin: Double, duration: TimeInterval, completion: (@Sendable () -> Void)? = nil) {
         queue.async { [weak self] in
             guard let self = self else { return }
-            guard let displayID = DisplayBridge.getBuiltinDisplayID() else {
-                completion?()
-                return
-            }
 
             self.lock.lock()
             self.animationTimer?.cancel()
             self.animationTimer = nil
+
+            let strength = Self.kelvinToStrength(kelvin)
+
+            if let client = self.blueLightClient, let setEnabled = self.setEnabledFn {
+                _ = setEnabled(client, self.setEnabledSel, true)
+                if let setStrengthPeriod = self.setStrengthPeriodFn, duration > 0.03 {
+                    _ = setStrengthPeriod(client, self.setStrengthPeriodSel, strength, Float(duration), true)
+                } else if let setStrengthCommit = self.setStrengthCommitFn {
+                    _ = setStrengthCommit(client, self.setStrengthCommitSel, strength, true)
+                }
+
+                self.isCurrentlyWarm = true
+                self.currentWarmthProgress = 1.0
+                self.lock.unlock()
+
+                if duration > 0.03 {
+                    self.queue.asyncAfter(deadline: .now() + duration) {
+                        completion?()
+                    }
+                } else {
+                    completion?()
+                }
+                return
+            }
+
+            // Gamma LUT 兜底动画
+            guard let displayID = DisplayBridge.getBuiltinDisplayID() else {
+                self.lock.unlock()
+                completion?()
+                return
+            }
 
             if self.baselineRed.isEmpty {
                 self.captureBaselineInternal(displayID: displayID)
@@ -131,11 +222,9 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
 
                 currentStep += 1
                 let progress = Double(currentStep) / Double(totalSteps)
-                // Ease-out cubic curve
                 let eased = Float(1.0 - pow(1.0 - progress, 3.0))
                 let currentFactor = startProgress + (1.0 - startProgress) * eased
 
-                // 插值当前乘数
                 let curR = 1.0 + (targetR - 1.0) * currentFactor
                 let curG = 1.0 + (targetG - 1.0) * currentFactor
                 let curB = 1.0 + (targetB - 1.0) * currentFactor
@@ -165,10 +254,6 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     public func restoreSystemColor(duration: TimeInterval = 0.0, completion: (@Sendable () -> Void)? = nil) {
         queue.async { [weak self] in
             guard let self = self else { return }
-            guard let displayID = DisplayBridge.getBuiltinDisplayID() else {
-                completion?()
-                return
-            }
 
             self.lock.lock()
             self.animationTimer?.cancel()
@@ -180,8 +265,45 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
                 return
             }
 
+            if let client = self.blueLightClient, let setEnabled = self.setEnabledFn {
+                if duration > 0.05, let setStrengthPeriod = self.setStrengthPeriodFn {
+                    _ = setStrengthPeriod(client, self.setStrengthPeriodSel, 0.0, Float(duration), true)
+                    self.lock.unlock()
+                    self.queue.asyncAfter(deadline: .now() + duration) { [weak self] in
+                        guard let self = self else { return }
+                        self.lock.lock()
+                        _ = setEnabled(client, self.setEnabledSel, false)
+                        self.isCurrentlyWarm = false
+                        self.currentWarmthProgress = 0.0
+                        self.lock.unlock()
+                        completion?()
+                    }
+                    return
+                } else {
+                    if let setStrengthCommit = self.setStrengthCommitFn {
+                        _ = setStrengthCommit(client, self.setStrengthCommitSel, 0.0, true)
+                    } else if let setStrengthPeriod = self.setStrengthPeriodFn {
+                        _ = setStrengthPeriod(client, self.setStrengthPeriodSel, 0.0, 0.0, true)
+                    }
+                    _ = setEnabled(client, self.setEnabledSel, false)
+                    self.forceRestoreNativeSync()
+                    self.isCurrentlyWarm = false
+                    self.currentWarmthProgress = 0.0
+                    self.lock.unlock()
+                    completion?()
+                    return
+                }
+            }
+
+            // Gamma LUT 兜底恢复
+            guard let displayID = DisplayBridge.getBuiltinDisplayID() else {
+                self.lock.unlock()
+                completion?()
+                return
+            }
+
             if duration <= 0.03 || self.baselineRed.isEmpty {
-                self.forceRestoreNative(displayID: displayID)
+                self.forceRestoreNativeSync(displayID: displayID)
                 self.lock.unlock()
                 completion?()
                 return
@@ -193,7 +315,6 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             let interval = duration / Double(totalSteps)
             var currentStep = 0
 
-            // 获取当期暖色目标（从偏好设置读取）
             let kelvin = SiriusPreferences.shared.amberTemperatureK
             let (targetR, targetG, targetB) = Self.multipliers(for: kelvin)
 
@@ -219,7 +340,7 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
                 self.currentWarmthProgress = currentFactor
 
                 if currentStep >= totalSteps {
-                    self.forceRestoreNative(displayID: displayID)
+                    self.forceRestoreNativeSync(displayID: displayID)
                     timer.cancel()
                     self.lock.lock()
                     self.animationTimer = nil
@@ -236,17 +357,35 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
 
     /// 强制瞬时复原系统默认色彩（硬件自愈与退出兜底）
     public func forceRestoreNative(displayID: CGDirectDisplayID? = nil) {
-        if let id = displayID ?? DisplayBridge.getBuiltinDisplayID(), !baselineRed.isEmpty {
-            CGSetDisplayTransferByTable(id, sampleCount, baselineRed, baselineGreen, baselineBlue)
-        } else {
-            CGDisplayRestoreColorSyncSettings()
+        lock.lock()
+        defer { lock.unlock() }
+        animationTimer?.cancel()
+        animationTimer = nil
+
+        if let client = self.blueLightClient, let setEnabled = self.setEnabledFn {
+            if let setStrengthCommit = self.setStrengthCommitFn {
+                _ = setStrengthCommit(client, self.setStrengthCommitSel, 0.0, true)
+            } else if let setStrengthPeriod = self.setStrengthPeriodFn {
+                _ = setStrengthPeriod(client, self.setStrengthPeriodSel, 0.0, 0.0, true)
+            }
+            _ = setEnabled(client, self.setEnabledSel, false)
         }
+
+        forceRestoreNativeSync(displayID: displayID)
         self.isCurrentlyWarm = false
         self.currentWarmthProgress = 0.0
         print("[Sirius] ColorEngine: Color profile completely restored to native system state.")
     }
 
     // MARK: - 内部私有方法
+
+    private func forceRestoreNativeSync(displayID: CGDirectDisplayID? = nil) {
+        if let id = displayID ?? DisplayBridge.getBuiltinDisplayID(), !baselineRed.isEmpty {
+            CGSetDisplayTransferByTable(id, sampleCount, baselineRed, baselineGreen, baselineBlue)
+        } else {
+            CGDisplayRestoreColorSyncSettings()
+        }
+    }
 
     private func captureBaselineInternal(displayID: CGDirectDisplayID) {
         let capacity: UInt32 = 256

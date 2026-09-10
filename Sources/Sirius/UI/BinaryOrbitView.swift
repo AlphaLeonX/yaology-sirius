@@ -5,6 +5,7 @@ import SwiftUI
 public struct BinaryOrbitView: View {
     @ObservedObject var stateMachine = SiriusStateMachine.shared
     @ObservedObject var preferences = SiriusPreferences.shared
+    @ObservedObject var locManager = LocalizationManager.shared
 
     public init() {}
 
@@ -61,7 +62,7 @@ public struct BinaryOrbitView: View {
                         .frame(width: 8, height: 8)
                         .position(primaryPos)
 
-                    Text("外接大屏 (主星)")
+                    Text(loc("外接大屏 (主星)", "External (Main)"))
                         .font(.system(size: 9, weight: .semibold))
                         .foregroundColor(.primary.opacity(0.75))
                         .position(x: primaryPos.x + 4, y: primaryPos.y + 18)
@@ -183,17 +184,17 @@ public struct BinaryOrbitView: View {
 
     private var companionLabel: String {
         switch stateMachine.currentState {
-        case .active: return "MacBook (全亮)"
-        case .cooldown: return "MacBook (等待)"
-        case .dimming: return "MacBook (渐暗)"
+        case .active: return loc("MacBook (全亮)", "MacBook (Active)")
+        case .cooldown: return loc("MacBook (等待)", "MacBook (Wait)")
+        case .dimming: return loc("MacBook (渐暗)", "MacBook (Dimming)")
         case .dimmed:
             if preferences.ambientFloor >= 0.999 {
-                return "MacBook (恒亮)"
+                return loc("MacBook (恒亮)", "MacBook (Full)")
             }
-            return "MacBook (微光)"
-        case .waking: return "MacBook (唤醒)"
-        case .paused: return "MacBook (暂停)"
-        case .dormant: return "MacBook (单屏)"
+            return loc("MacBook (微光)", "MacBook (Ambient)")
+        case .waking: return loc("MacBook (唤醒)", "MacBook (Waking)")
+        case .paused: return loc("MacBook (暂停)", "MacBook (Paused)")
+        case .dormant: return loc("MacBook (单屏)", "MacBook (Solo)")
         }
     }
 
@@ -209,17 +210,17 @@ public struct BinaryOrbitView: View {
 
     private var statusHeadline: String {
         switch stateMachine.currentState {
-        case .active: return "鼠标在 Mac 屏幕上"
-        case .cooldown: return "鼠标已离开，等待暗下..."
-        case .dimming: return "平滑变暗中..."
+        case .active: return loc("鼠标在 Mac 屏幕上", "Cursor on Mac screen")
+        case .cooldown: return loc("鼠标已离开，等待暗下...", "Cursor left, cooling down...")
+        case .dimming: return loc("平滑变暗中...", "Dimming smoothly...")
         case .dimmed:
             if preferences.ambientFloor >= 0.999 {
-                return "常亮模式 · 屏幕不暗下"
+                return loc("常亮模式 · 屏幕不暗下", "Always-on · Screen remains bright")
             }
-            return "MacBook 处于微光待机"
-        case .waking: return "鼠标移回 · 即刻唤醒"
-        case .paused: return "调光引擎已暂停"
-        case .dormant(let r): return "待机中 (\(r))"
+            return loc("MacBook 处于微光待机", "MacBook in ambient standby")
+        case .waking: return loc("鼠标移回 · 即刻唤醒", "Cursor returned · Waking up")
+        case .paused: return loc("调光引擎已暂停", "Dimming engine paused")
+        case .dormant(let r): return loc("待机中 (\(r))", "Standby (\(r))")
         }
     }
 
@@ -230,9 +231,9 @@ public struct BinaryOrbitView: View {
         case .dimming: return "DIMMING"
         case .dimmed:
             if preferences.ambientFloor >= 0.999 {
-                return "100% 恒亮"
+                return loc("100% 恒亮", "100% FULL")
             }
-            return "\(Int(preferences.ambientFloor * 100))% 微光"
+            return loc("\(Int(preferences.ambientFloor * 100))% 微光", "\(Int(preferences.ambientFloor * 100))% FLOOR")
         case .waking: return "WAKING"
         case .paused: return "PAUSED"
         case .dormant: return "STANDBY"

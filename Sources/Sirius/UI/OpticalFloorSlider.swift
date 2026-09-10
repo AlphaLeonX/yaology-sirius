@@ -4,6 +4,7 @@ import SwiftUI
 /// 带有精准几何刻度标尺与实时硬件背光预览响应，自适应 macOS 浅色/深色模式
 public struct OpticalFloorSlider: View {
     @ObservedObject var preferences = SiriusPreferences.shared
+    @ObservedObject var locManager = LocalizationManager.shared
     @State private var isDragging: Bool = false
 
     public init() {}
@@ -16,7 +17,7 @@ public struct OpticalFloorSlider: View {
                     Image(systemName: "sun.min.fill")
                         .font(.system(size: 11))
                         .foregroundColor(Color.accentColor)
-                    Text("微光底噪 (变暗程度)")
+                    Text(loc("微光底噪 (变暗程度)", "Ambient Floor (Dim Level)"))
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.primary)
                 }
@@ -29,7 +30,7 @@ public struct OpticalFloorSlider: View {
                             Circle()
                                 .fill(Color.accentColor)
                                 .frame(width: 5, height: 5)
-                            Text("预览")
+                            Text(loc("预览", "Preview"))
                                 .font(.system(size: 9, weight: .semibold))
                                 .foregroundColor(Color.accentColor)
                         }
@@ -42,15 +43,15 @@ public struct OpticalFloorSlider: View {
                             .foregroundColor(Color.accentColor)
 
                         if preferences.ambientFloor <= 0.001 {
-                            Text("(熄屏)")
+                            Text(loc("(熄屏)", "(Off)"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundColor(.secondary)
                         } else if preferences.ambientFloor >= 0.999 {
-                            Text("(恒亮)")
+                            Text(loc("(恒亮)", "(Full)"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundColor(.secondary)
                         } else if abs(preferences.ambientFloor - 0.12) < 0.008 {
-                            Text("(推荐)")
+                            Text(loc("(推荐)", "(Rec)"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundColor(Color.accentColor.opacity(0.85))
                         }
@@ -109,9 +110,9 @@ public struct OpticalFloorSlider: View {
 
             // 快捷档位预设胶囊
             HStack(spacing: 5) {
-                presetButton(title: "0% 熄屏", value: 0.0)
-                presetButton(title: "12% 推荐微光", value: 0.12)
-                presetButton(title: "100% 恒亮", value: 1.0)
+                presetButton(title: loc("0% 熄屏", "0% Off"), value: 0.0)
+                presetButton(title: loc("12% 推荐微光", "12% Rec"), value: 0.12)
+                presetButton(title: loc("100% 恒亮", "100% Full"), value: 1.0)
             }
         }
         .padding(10)

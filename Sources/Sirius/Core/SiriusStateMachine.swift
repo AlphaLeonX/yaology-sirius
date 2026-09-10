@@ -15,29 +15,33 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
         case paused(until: Date?)
 
         public var description: String {
+            return localizedDescription
+        }
+
+        public var localizedDescription: String {
             switch self {
             case .dormant(let reason):
-                return "待机 (\(reason))"
+                return loc("待机 (\(reason))", "Standby (\(reason))")
             case .active:
-                return "伴星全亮 (焦点在 Mac)"
+                return loc("伴星全亮 (焦点在 Mac)", "Companion Active (Focus on Mac)")
             case .cooldown:
-                return "离开冷静期 (等待暗下)"
+                return loc("离开冷静期 (等待暗下)", "Cooldown (Waiting to dim)")
             case .dimming:
-                return "平滑暗下中"
+                return loc("平滑暗下中", "Dimming smoothly")
             case .dimmed:
                 if SiriusPreferences.shared.ambientFloor >= 0.999 {
-                    return "双星恒亮 (100% 伴星不暗下)"
+                    return loc("双星恒亮 (100% 伴星不暗下)", "Always-on (100% no dimming)")
                 }
-                return "微光潜航 (焦点在外接屏)"
+                return loc("微光潜航 (焦点在外接屏)", "Ambient Floor (Focus on External)")
             case .waking:
-                return "瞬时唤醒中"
+                return loc("瞬时唤醒中", "Waking up")
             case .paused(let until):
                 if let until = until {
                     let formatter = DateFormatter()
                     formatter.dateFormat = "HH:mm"
-                    return "已暂停 (至 \(formatter.string(from: until)))"
+                    return loc("已暂停 (至 \(formatter.string(from: until)))", "Paused (until \(formatter.string(from: until)))")
                 }
-                return "已手动暂停"
+                return loc("已手动暂停", "Paused manually")
             }
         }
     }
@@ -206,16 +210,38 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
     public func endPreviewAmberTemperature() {
         queue.async { [weak self] in
             guard let self = self else { return }
-            if case .active = self.currentState {
-                if !self.preferences.amberAmbientEnabled || self.preferences.amberRestoreOnWake {
+            if !self.preferences.amberAmbientEnabled {
+                self.colorEngine.restoreSystemColor(duration: 0.25)
+                return
+            }
+
+            switch self.currentState {
+            case .active:
+                if self.preferences.amberRestoreOnWake {
+                    self.colorEngine.restoreSystemColor(duration: 0.25)
+                } else {
+                    self.colorEngine.previewTemperature(kelvin: self.preferences.amberTemperatureK)
+                }
+            case .dimmed:
+                self.colorEngine.transitionToWarm(kelvin: self.preferences.amberTemperatureK, duration: 0.15)
+            default:
+                if self.preferences.amberRestoreOnWake {
                     self.colorEngine.restoreSystemColor(duration: 0.25)
                 }
-            } else if case .dimmed = self.currentState {
-                if self.preferences.amberAmbientEnabled {
-                    self.colorEngine.transitionToWarm(kelvin: self.preferences.amberTemperatureK, duration: 0.15)
-                } else {
-                    self.colorEngine.restoreSystemColor(duration: 0.15)
-                }
+            }
+        }
+    }
+
+    /// 用户在界面切换琥珀微光总开关时的即时响应
+    public func handleAmberAmbientToggled(enabled: Bool) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            if enabled {
+                // 开启瞬间即时预览暖色效果
+                self.colorEngine.previewTemperature(kelvin: self.preferences.amberTemperatureK)
+            } else {
+                // 关闭瞬间即刻还原自然纯白
+                self.colorEngine.restoreSystemColor(duration: 0.20)
             }
         }
     }

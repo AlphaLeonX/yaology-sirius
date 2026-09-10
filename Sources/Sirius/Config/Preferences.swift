@@ -25,6 +25,7 @@ public final class SiriusPreferences: ObservableObject {
         public static let amberRestoreOnWake = "sirius.amberRestoreOnWake"
         public static let suppressResetOnQuitPrompt = "sirius.suppressResetOnQuitPrompt"
         public static let resetOnQuitChoice = "sirius.resetOnQuitChoice"
+        public static let appLanguage = "sirius.appLanguage"
     }
 
     private let defaults = UserDefaults.standard
@@ -154,6 +155,13 @@ public final class SiriusPreferences: ObservableObject {
         }
     }
 
+    /// 软件界面显示语言 ("system" 跟随系统 / "zh" 简体中文 / "en" English)
+    @Published public var appLanguage: String {
+        didSet {
+            defaults.set(appLanguage, forKey: Keys.appLanguage)
+        }
+    }
+
     /// 定时恢复时间（如果设置了临时暂停 30m / 1h）
     @Published public var pauseUntil: Date?
 
@@ -175,7 +183,8 @@ public final class SiriusPreferences: ObservableObject {
             Keys.amberTemperatureK: 3200.0,
             Keys.amberRestoreOnWake: false,
             Keys.suppressResetOnQuitPrompt: false,
-            Keys.resetOnQuitChoice: false
+            Keys.resetOnQuitChoice: false,
+            Keys.appLanguage: "system"
         ])
 
         self.ambientFloor = defaults.float(forKey: Keys.ambientFloor)
@@ -197,6 +206,7 @@ public final class SiriusPreferences: ObservableObject {
         self.amberRestoreOnWake = defaults.bool(forKey: Keys.amberRestoreOnWake)
         self.suppressResetOnQuitPrompt = defaults.bool(forKey: Keys.suppressResetOnQuitPrompt)
         self.resetOnQuitChoice = defaults.bool(forKey: Keys.resetOnQuitChoice)
+        self.appLanguage = defaults.string(forKey: Keys.appLanguage) ?? "system"
 
         // 校验系统真实自启状态
         checkSystemLaunchAtLoginStatus()
@@ -278,5 +288,6 @@ public final class SiriusPreferences: ObservableObject {
         self.amberAmbientEnabled = false
         self.amberTemperatureK = 3200.0
         self.amberRestoreOnWake = false
+        self.appLanguage = "system"
     }
 }
