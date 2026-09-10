@@ -1,0 +1,212 @@
+import SwiftUI
+import AppKit
+
+/// 遵循 Yaology 极简美学的悬浮控制面板 (v1.1.1)
+/// 完美自适应 macOS 浅色/深色主题，彻底杜绝黑角与对比度模糊问题
+public struct TasteSkillPopOverView: View {
+    @ObservedObject var stateMachine = SiriusStateMachine.shared
+    @ObservedObject var preferences = SiriusPreferences.shared
+
+    private let cooldownPresets: [TimeInterval] = [1.0, 3.0, 5.0, 8.0]
+
+    public init() {}
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // MARK: - 顶栏：标题与设置入口
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Sirius")
+                        .font(.system(size: 17, weight: .bold, design: .serif))
+                        .foregroundColor(.primary)
+                        .tracking(-0.3)
+                    Text("Mac 多屏引力调光 · α CMa")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                // 设置按钮
+                Button(action: {
+                    SettingsWindowController.shared.showSettings()
+                }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(6)
+                        .background(Color(nsColor: .controlBackgroundColor))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help("打开设置 (⌘,)")
+            }
+
+            // MARK: - 动态双星引力状态图
+            BinaryOrbitView()
+
+            // MARK: - 快捷启闭行
+            HStack(spacing: 8) {
+                Button(action: {
+                    stateMachine.togglePause()
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: preferences.isPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 10, weight: .medium))
+                        Text(preferences.isPaused ? "恢复调光" : "快捷暂停")
+                            .font(.system(size: 11, weight: .medium))
+                        Text(preferences.hotKeyDisplayString)
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .monospacedDigit()
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(preferences.isPaused ? Color.white.opacity(0.2) : Color.primary.opacity(0.08))
+                            .cornerRadius(3)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 28)
+                }
+                .buttonStyle(.plain)
+                .background(preferences.isPaused ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                .foregroundColor(preferences.isPaused ? .white : .primary)
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(preferences.isPaused ? Color.clear : Color.primary.opacity(0.12), lineWidth: 1)
+                )
+
+                Menu {
+                    Button("暂停 30 分钟") { stateMachine.pauseTemporarily(duration: 30 * 60) }
+                    Button("暂停 1 小时") { stateMachine.pauseTemporarily(duration: 60 * 60) }
+                    Button("暂停至明天 9:00") { stateMachine.pauseTemporarily(duration: 12 * 60 * 60) }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("定时暂停")
+                            .font(.system(size: 11, weight: .medium))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .semibold))
+                            .opacity(0.65)
+                    }
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.primary.opacity(0.12), lineWidth: 1)
+                    )
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+            }
+
+            // MARK: - 微光底噪调节滑块 (0%~100%)
+            OpticalFloorSlider()
+
+            // MARK: - 离开冷静期快捷预设
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color.accentColor)
+                        Text("离开延时 (防抖缓冲)")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.primary)
+                    }
+                    Spacer()
+                    Text(String(format: "%.1fs", preferences.cooldownDelay))
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .monospacedDigit()
+                        .foregroundColor(Color.accentColor)
+                }
+
+                HStack(spacing: 5) {
+                    ForEach(cooldownPresets, id: \.self) { seconds in
+                        Button(action: {
+                            preferences.cooldownDelay = seconds
+                        }) {
+                            Text("\(Int(seconds))s\(seconds == 3.0 ? " (推)" : "")")
+                                .font(.system(size: 10, weight: abs(preferences.cooldownDelay - seconds) < 0.1 ? .bold : .medium))
+                                .monospacedDigit()
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 4)
+                                .background(abs(preferences.cooldownDelay - seconds) < 0.1 ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                                .foregroundColor(abs(preferences.cooldownDelay - seconds) < 0.1 ? .white : .primary)
+                                .cornerRadius(4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.primary.opacity(0.12), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // 自定义时长胶囊
+                    if !cooldownPresets.contains(where: { abs($0 - preferences.cooldownDelay) < 0.1 }) {
+                        Button(action: {
+                            SettingsWindowController.shared.showSettings()
+                        }) {
+                            Text(String(format: "%.1fs (自定)", preferences.cooldownDelay))
+                                .font(.system(size: 10, weight: .bold))
+                                .monospacedDigit()
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                                .background(Color.accentColor)
+                                .foregroundColor(.white)
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.6))
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+
+            Divider()
+                .opacity(0.2)
+
+            // MARK: - 底部栏：版本信息 & 退出
+            HStack(alignment: .center) {
+                Text("Sirius v1.1.1 · α CMa")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .monospacedDigit()
+                    .foregroundColor(.secondary.opacity(0.7))
+
+                Spacer()
+
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "power")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text("退出 Sirius")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundColor(.red.opacity(0.85))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(4)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .background(.regularMaterial)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.primary.opacity(0.10), lineWidth: 1)
+        )
+    }
+}

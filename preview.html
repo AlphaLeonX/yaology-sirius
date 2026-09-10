@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sirius · Gravitational Eclipse 质感本原与光学标定评审 · @yaology/sirius</title>
+  
+  <!-- Google Fonts: Editorial Serif + Grotesque + Monospace -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#0C0D0E',
+            card: '#121417',
+            cardRaised: '#171A1F',
+            borderHairline: 'rgba(255, 255, 255, 0.08)',
+            accentCyan: '#38BDF8',
+            accentIce: '#E0F2FE',
+            textMuted: '#94A3B8'
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Instrument Serif', 'Songti SC', 'serif'],
+            sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['Geist Mono', 'SF Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background-color: #0C0D0E;
+      color: #E2E4E9;
+      font-family: 'Geist', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .dock-glass {
+      background: rgba(24, 27, 36, 0.55);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+    
+    .squircle {
+      border-radius: 22.37%;
+    }
+
+    .checkered {
+      background-image: 
+        linear-gradient(45deg, #16181D 25%, transparent 25%), 
+        linear-gradient(-45deg, #16181D 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #16181D 75%), 
+        linear-gradient(-45deg, transparent 75%, #16181D 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen selection:bg-sky-500/30 selection:text-sky-200 pb-24">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-50 bg-[#0C0D0E]/85 backdrop-blur-md border-b border-white/[0.06] px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3.5">
+        <a href="../../README.md" class="text-xs font-mono text-neutral-400 hover:text-white transition flex items-center gap-1.5">
+          <span>←</span>
+          <span>YAOLOGY UNIVERSE</span>
+        </a>
+        <span class="text-neutral-600 font-mono">/</span>
+        <span class="text-xs font-mono text-sky-400">@yaology/sirius</span>
+        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/60 border border-sky-500/30 text-sky-300">
+          动力与创造之轨 · α CMa
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs font-mono">
+        <span class="text-neutral-400">装配母版: <strong class="text-white font-semibold">Gravitational Eclipse (引力交食)</strong></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span class="text-emerald-400 text-[11px]">Optical Engine Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Narrative & Rational Reflection -->
+  <section class="max-w-7xl mx-auto px-6 pt-12 pb-8">
+    <div class="max-w-4xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-xs font-mono text-sky-300 mb-5">
+        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+        <span>AESTHETIC RESTORATION &amp; RETINA OPTICAL CALIBRATION</span>
+      </div>
+
+      <h1 class="text-3xl md:text-5xl font-serif tracking-tight text-white mb-4 leading-tight">
+        引力交食 · 质感本原与多尺度光学标定
+      </h1>
+
+      <p class="text-neutral-300 text-sm md:text-base leading-relaxed font-sans mb-6">
+        你的判断一针见血：后续尝试的方案（大颗粒琥珀晶球、粗金属重框架、饱和暖黄伴星）走入了<strong>过度设计（Over-engineering）</strong>的泥潭。它们在试图用粗笨的实体去解决“小尺寸辨识”时，彻底破坏了《Gravitational Eclipse》那份<strong>静穆、神圣、克制、纯粹的深空引力交食质感</strong>。
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans mb-8">
+        <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-2">
+          <div class="flex items-center gap-2 text-rose-400 font-mono font-semibold">
+            <span>✕</span>
+            <span>之前方案为何偏离</span>
+          </div>
+          <p class="text-neutral-400 leading-relaxed">
+            试图用改变画面画风的方式强行提亮：把伴星做成大颗黄色塑料球，给外框套上厚重的钛合金齿轮，结果沦为了平庸俗气的科幻图标，失去了《星际穿越》般的宇宙崇高感。
+          </p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white/[0.02] border border-sky-500/20 space-y-2">
+          <div class="flex items-center gap-2 text-sky-400 font-mono font-semibold">
+            <span>✓</span>
+            <span>本轮最终解决方案</span>
+          </div>
+          <p class="text-neutral-300 leading-relaxed">
+            <strong>100% 捍卫原作画面、笔触与构图</strong>。小尺寸看不清的根本原因是<strong>亚像素下采样湮灭（1~2px 发丝日冕在 32px 栅格中光子被稀释 94%）与 24% 外部黑底留白</strong>。我们通过 macOS 原生多尺度微字号光学引擎，在 16px/32px 保持光子能量密度，大尺寸保留极致微细节！
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live macOS Dock Simulator -->
+  <section class="max-w-7xl mx-auto px-6 py-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-xl font-serif text-white">真实 macOS Dock 动态体验</h2>
+        <p class="text-xs font-mono text-neutral-400">已完整裁切为标准透明圆角 Squircle 与微投影，测试不同桌面壁纸下的悬浮与融入质感</p>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs font-mono">
+        <span class="text-neutral-400">壁纸切换:</span>
+        <button onclick="setWallpaper('dark')" class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white transition">深空墨黑</button>
+        <button onclick="setWallpaper('sequoia')" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 transition">Sequoia 暖木</button>
+        <button onclick="setWallpaper('sonoma')" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 transition">Sonoma 亮蓝</button>
+        <button onclick="setWallpaper('paper')" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 transition">Taste 浅色纸</button>
+      </div>
+    </div>
+
+    <!-- Dock Viewport -->
+    <div id="wallpaper-canvas" class="w-full h-80 rounded-2xl border border-white/10 relative flex flex-col justify-end items-center pb-6 transition-all duration-500 overflow-hidden" style="background: radial-gradient(circle at 50% 30%, #151824 0%, #08090C 100%);">
+      
+      <!-- Staged Status Tag -->
+      <div class="absolute top-6 flex items-center gap-5">
+        <div class="text-right">
+          <span class="text-[9px] font-mono text-sky-400 uppercase tracking-widest block">CURRENT ACTIVE SYSTEM ICON</span>
+          <h3 class="text-base font-serif text-white">Gravitational Eclipse (Retina Optical Edition)</h3>
+          <p class="text-xs font-mono text-neutral-400">已装配入 dist/Sirius.app · 100% 原作笔触 + 多尺度光学保全</p>
+        </div>
+        <div class="w-16 h-16 squircle overflow-hidden border border-white/20 shadow-2xl relative bg-black/40">
+          <img src="assets/icons/eclipse_optical_128.png" class="w-full h-full object-contain" alt="Preview">
+        </div>
+      </div>
+
+      <!-- Dock Bar -->
+      <div class="dock-glass rounded-2xl px-4 py-2 flex items-end gap-3 z-10 shadow-2xl">
+        <!-- Finder -->
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-lg shadow-md hover:-translate-y-2 transition duration-200 cursor-pointer">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+
+        <!-- Safari -->
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-lg shadow-md hover:-translate-y-2 transition duration-200 cursor-pointer">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/></svg>
+        </div>
+
+        <!-- Terminal -->
+        <div class="w-12 h-12 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-center text-neutral-300 font-mono text-xs font-bold shadow-md hover:-translate-y-2 transition duration-200 cursor-pointer">
+          &gt;_
+        </div>
+
+        <div class="w-[1px] h-8 bg-white/20 mx-1 mb-2"></div>
+
+        <!-- The Sirius Icon Tested in Dock -->
+        <div class="relative group cursor-pointer hover:-translate-y-3 transition-transform duration-200">
+          <div class="w-13 h-13 overflow-visible relative flex items-center justify-center">
+            <img src="assets/icons/eclipse_optical_128.png" class="w-12 h-12 object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]" alt="Sirius in Dock">
+          </div>
+          <div class="w-1 h-1 rounded-full bg-sky-400 mx-auto mt-1 shadow-[0_0_8px_#38BDF8]"></div>
+        </div>
+
+        <div class="w-[1px] h-8 bg-white/20 mx-1 mb-2"></div>
+
+        <!-- Trash -->
+        <div class="w-12 h-12 rounded-xl bg-neutral-800/80 flex items-center justify-center text-neutral-400 shadow-md hover:-translate-y-2 transition duration-200 cursor-pointer">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Side-by-Side The Master & The Optical Sizing Ladder -->
+  <main class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+
+    <!-- ==================== 1024 MASTER SHOWCASE ==================== -->
+    <article class="p-8 md:p-10 rounded-3xl bg-card border border-borderHairline relative overflow-hidden group shadow-2xl">
+      <div class="absolute -top-20 -right-20 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <!-- Visual Column -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="w-72 h-72 md:w-84 md:h-84 overflow-visible relative flex items-center justify-center">
+            <img src="assets/icons/eclipse_optical_512.png" alt="Gravitational Eclipse Master 512px" class="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]">
+          </div>
+          <span class="text-xs font-mono text-neutral-400 mt-4">100% 原始母版质感 · 完美 Apple Squircle 与微倒角</span>
+        </div>
+
+        <!-- Info Column -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-0.5 rounded bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono font-bold">
+              ORIGINAL MASTERWORK RESTORED
+            </span>
+            <span class="text-xs font-mono text-neutral-400">Taste-Skill Soft DNA · 极度克制静穆</span>
+          </div>
+
+          <h3 class="text-2xl md:text-3xl font-serif text-white tracking-tight">
+            Gravitational Eclipse (引力交食) · 原生母版
+          </h3>
+
+          <p class="text-sm text-neutral-300 leading-relaxed font-sans">
+            这就是最初打动你的画面语言：一颗彻底隐入虚空的<strong>深空黑曜石母天体（Sirius A）</strong>，背后迸发着<strong>10000K 冰蓝与纯白交织的发丝级日冕环</strong>；
+            一道倾斜的<strong>微细引力轨道矢量弧</strong>穿过天体，在其右上角，<strong>伴星 Sirius B（白矮星）</strong>如同一颗高能光子钻石孤悬其上。
+            背景中漂浮着极其克制细腻的<strong>星尘微粒</strong>，配合微哑光深黑阳极氧化铝边框，尽显物理与天文的神圣静谧。
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs">
+            <div class="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+              <span class="text-sky-400 font-mono font-semibold block">01. 零人工干预笔触 (Pure Interstellar Brushwork)</span>
+              <p class="text-neutral-400">不加任何金黄珠子、不加厚重钛合金轮盘，100% 保持最初天体交食的电影级神秘感。</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+              <span class="text-emerald-400 font-mono font-semibold block">02. 标准透明 Alpha 与微投影 (macOS Ready)</span>
+              <p class="text-neutral-400">将多余的 24% 外部黑色画布剔除，裁切为标准 824px Squircle，在浅色与深色桌面均完美漂浮。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ==================== SCALE LADDER: THE HARD PROOF ==================== -->
+    <article class="p-8 md:p-10 rounded-3xl bg-card border border-borderHairline space-y-8">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono text-emerald-400 uppercase tracking-wider font-semibold">THE ENGINEERING BREAKTHROUGH</span>
+        </div>
+        <h3 class="text-2xl font-serif text-white mt-1">多尺度视力表标定（Optical Sizing Ladder）实测</h3>
+        <p class="text-xs font-mono text-neutral-400 mt-1">
+          直面对比：当尺寸缩小到 32px 和 16px 时，普通缩放 vs 光学保全的真实视觉反差
+        </p>
+      </div>
+
+      <!-- Comparison Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Left: Naive sips downsample (Why it disappeared) -->
+        <div class="p-6 rounded-2xl bg-white/[0.01] border border-rose-500/20 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-rose-400 font-bold">常规插值缩放（优化前·问题根源）</span>
+            <span class="text-[10px] font-mono text-neutral-500">sips / bicubic averaging</span>
+          </div>
+          <p class="text-xs text-neutral-400 leading-relaxed font-sans">
+            日冕环只有 2px 宽，在 32px 栅格中每个像素平均 1024 个源像素，日冕占比不到 6%，光子能量被周围 94% 深黑背景冲淡成 RGB(15)，人眼看过去就是一团死黑，伴星彻底熄灭。
+          </p>
+
+          <div class="flex items-center justify-around p-6 rounded-xl bg-black border border-white/[0.06]">
+            <!-- 64px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-16 h-16 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/01_gravitational_eclipse.jpg" class="w-16 h-16 object-cover opacity-60">
+              </div>
+              <span class="text-[10px] font-mono text-neutral-500">64px (发虚)</span>
+            </div>
+
+            <!-- 32px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-12 h-12 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/eclipse_naive_32.png" class="w-8 h-8 object-cover">
+              </div>
+              <span class="text-[10px] font-mono text-rose-400 font-bold">32px (几乎看不出)</span>
+            </div>
+
+            <!-- 16px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/eclipse_naive_16.png" class="w-4 h-4 object-cover">
+              </div>
+              <span class="text-[10px] font-mono text-rose-400 font-bold">16px (完全一团黑)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Optical Multi-scale (The Solution) -->
+        <div class="p-6 rounded-2xl bg-white/[0.02] border border-emerald-500/30 space-y-4 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-emerald-400 font-bold">微字号光学标定（当前生效·多尺度保全）</span>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Active in Sirius.app</span>
+          </div>
+          <p class="text-xs text-neutral-300 leading-relaxed font-sans">
+            参考苹果字体 Optical Sizes 原理：小尺寸对日冕与 Sirius B 施加高光能量保全与发丝膨胀，中心深黑与边框依然哑光，日冕环亮若电弧，伴星在 16px 依然闪耀！
+          </p>
+
+          <div class="flex items-center justify-around p-6 rounded-xl bg-black border border-white/[0.06]">
+            <!-- 64px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-16 h-16 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/eclipse_optical_64.png" class="w-16 h-16 object-contain">
+              </div>
+              <span class="text-[10px] font-mono text-neutral-400">64px (极清晰)</span>
+            </div>
+
+            <!-- 32px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-12 h-12 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/eclipse_optical_32.png" class="w-8 h-8 object-contain">
+              </div>
+              <span class="text-[10px] font-mono text-emerald-400 font-bold">32px (日冕与伴星锐利)</span>
+            </div>
+
+            <!-- 16px -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-10 h-10 border border-white/10 rounded flex items-center justify-center bg-black">
+                <img src="assets/icons/eclipse_optical_16.png" class="w-4 h-4 object-contain">
+              </div>
+              <span class="text-[10px] font-mono text-sky-400 font-bold">16px (星核高能辨识)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Verification -->
+      <div class="pt-4 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-white/[0.06]">
+        <div class="text-xs font-mono text-neutral-400">
+          <span>产物位置: <code class="text-sky-300">dist/Sirius.app</code> (496KB)</span>
+          <span class="mx-2">·</span>
+          <span>图标准确度: <strong class="text-emerald-400 font-semibold">100% Gravitational Eclipse 原版</strong></span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="launchApp()" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-mono text-xs font-semibold shadow-lg transition">
+            在 Mac 本地运行验证 ⌥+S
+          </button>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- Interactive Scripts -->
+  <script>
+    function setWallpaper(type) {
+      const canvas = document.getElementById('wallpaper-canvas');
+      if (type === 'dark') {
+        canvas.style.background = 'radial-gradient(circle at 50% 30%, #151824 0%, #08090C 100%)';
+      } else if (type === 'sequoia') {
+        canvas.style.background = 'linear-gradient(135deg, #2D1B13 0%, #140C07 50%, #080503 100%)';
+      } else if (type === 'sonoma') {
+        canvas.style.background = 'linear-gradient(135deg, #1A2639 0%, #111827 50%, #0A0D14 100%)';
+      } else if (type === 'paper') {
+        canvas.style.background = 'linear-gradient(135deg, #EAE5DD 0%, #D8D2C7 50%, #C4BEB2 100%)';
+      }
+    }
+
+    function launchApp() {
+      const cmd = "open /Users/leon/工程/Code/personal-projects/yaology/sirius/dist/Sirius.app";
+      navigator.clipboard.writeText(cmd).then(() => {
+        alert("已复制打开指令到剪贴板！\n运行：" + cmd);
+      }).catch(() => {
+        prompt("请复制终端运行命令：", cmd);
+      });
+    }
+  </script>
+</body>
+</html>

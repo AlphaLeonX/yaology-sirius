@@ -1,0 +1,74 @@
+name: Release & Deploy Site
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Tag (e.g. v1.1.1)'
+        required: false
+        default: 'v1.1.1'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'release'
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    name: Build Native macOS App & Release
+    runs-on: macos-14 # Apple Silicon (M1/M2) Native Runner
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and Package Sirius (DMG & Zip)
+        run: |
+          chmod +x scripts/*.sh
+          bash scripts/package_dmg.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Sirius ${{ github.ref_name || inputs.tag }}"
+          tag_name: ${{ github.ref_name || inputs.tag }}
+          files: |
+            dist/Sirius-*.dmg
+            dist/Sirius-*.zip
+            dist/checksums.txt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-site:
+    name: Deploy Product Site to GitHub Pages
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Site Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
