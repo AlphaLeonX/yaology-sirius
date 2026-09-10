@@ -85,10 +85,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let prefs = SiriusPreferences.shared
+
+        // 1. 如果用户已选择“下次不再询问”，直接执行已记录策略
+        if prefs.suppressResetOnQuitPrompt {
+            if prefs.resetOnQuitChoice {
+                prefs.resetToDefaults()
+            }
+            return .terminateNow
+        }
+
+        // 2. 弹出原生确认提示弹窗
+        let alert = NSAlert()
+        alert.messageText = "退出 Sirius"
+        alert.informativeText = "是否需要在退出前将所有调光、色温与快捷键配置重置为出厂默认值？"
+        alert.alertStyle = .informational
+
+        let keepBtn = alert.addButton(withTitle: "保留当前设置并退出")
+        keepBtn.keyEquivalent = "\r"
+
+        alert.addButton(withTitle: "重置为默认值并退出")
+
+        alert.showsSuppressionButton = true
+        alert.suppressionButton?.title = "下次不再询问 (记住我的选择)"
+
+        NSApp.activate(ignoringOtherApps: true)
+        let response = alert.runModal()
+        let shouldRemember = alert.suppressionButton?.state == .on
+
+        if response == .alertFirstButtonReturn {
+            // 保留当前设置
+            if shouldRemember {
+                prefs.suppressResetOnQuitPrompt = true
+                prefs.resetOnQuitChoice = false
+            }
+        } else if response == .alertSecondButtonReturn {
+            // 重置为默认值
+            prefs.resetToDefaults()
+            if shouldRemember {
+                prefs.suppressResetOnQuitPrompt = true
+                prefs.resetOnQuitChoice = true
+            }
+        }
+
+        return .terminateNow
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
-        // 退出前安全复原
+        // 退出前安全复原硬件与色彩
         HotKeyManager.shared.unregister()
         AutoBrightnessManager.shared.restoreAutoBrightnessAfterWaking()
+        ColorTemperatureEngine.shared.forceRestoreNative()
         if let builtinID = DisplayBridge.getBuiltinDisplayID() {
             DisplayBridge.setBrightness(displayID: builtinID, brightness: BrightnessEngine.shared.userActiveBrightness)
         }

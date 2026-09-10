@@ -20,6 +20,11 @@ public final class SiriusPreferences: ObservableObject {
         public static let launchAtLogin = "sirius.launchAtLogin"
         public static let isPaused = "sirius.isPaused"
         public static let showInDock = "sirius.showInDock"
+        public static let amberAmbientEnabled = "sirius.amberAmbientEnabled"
+        public static let amberTemperatureK = "sirius.amberTemperatureK"
+        public static let amberRestoreOnWake = "sirius.amberRestoreOnWake"
+        public static let suppressResetOnQuitPrompt = "sirius.suppressResetOnQuitPrompt"
+        public static let resetOnQuitChoice = "sirius.resetOnQuitChoice"
     }
 
     private let defaults = UserDefaults.standard
@@ -113,6 +118,42 @@ public final class SiriusPreferences: ObservableObject {
         }
     }
 
+    /// 是否开启琥珀微光低蓝光护眼（默认 false）
+    @Published public var amberAmbientEnabled: Bool {
+        didSet {
+            defaults.set(amberAmbientEnabled, forKey: Keys.amberAmbientEnabled)
+        }
+    }
+
+    /// 琥珀微光色温 (2500K ~ 5500K，默认 3200K)
+    @Published public var amberTemperatureK: Double {
+        didSet {
+            let clamped = max(2500.0, min(5500.0, amberTemperatureK))
+            defaults.set(clamped, forKey: Keys.amberTemperatureK)
+        }
+    }
+
+    /// 光标划回唤醒时是否还原真实自然色彩 (默认 false，即唤醒后保持护眼色温)
+    @Published public var amberRestoreOnWake: Bool {
+        didSet {
+            defaults.set(amberRestoreOnWake, forKey: Keys.amberRestoreOnWake)
+        }
+    }
+
+    /// 退出时是否静默记住重置选择不再弹窗
+    @Published public var suppressResetOnQuitPrompt: Bool {
+        didSet {
+            defaults.set(suppressResetOnQuitPrompt, forKey: Keys.suppressResetOnQuitPrompt)
+        }
+    }
+
+    /// 退出时默认选择：true 表示重置，false 表示保留
+    @Published public var resetOnQuitChoice: Bool {
+        didSet {
+            defaults.set(resetOnQuitChoice, forKey: Keys.resetOnQuitChoice)
+        }
+    }
+
     /// 定时恢复时间（如果设置了临时暂停 30m / 1h）
     @Published public var pauseUntil: Date?
 
@@ -129,7 +170,12 @@ public final class SiriusPreferences: ObservableObject {
             Keys.hotKeyDisplayString: "⌥S",
             Keys.launchAtLogin: false,
             Keys.isPaused: false,
-            Keys.showInDock: true
+            Keys.showInDock: true,
+            Keys.amberAmbientEnabled: false,
+            Keys.amberTemperatureK: 3200.0,
+            Keys.amberRestoreOnWake: false,
+            Keys.suppressResetOnQuitPrompt: false,
+            Keys.resetOnQuitChoice: false
         ])
 
         self.ambientFloor = defaults.float(forKey: Keys.ambientFloor)
@@ -145,6 +191,12 @@ public final class SiriusPreferences: ObservableObject {
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.isPaused = defaults.bool(forKey: Keys.isPaused)
         self.showInDock = defaults.object(forKey: Keys.showInDock) as? Bool ?? true
+        self.amberAmbientEnabled = defaults.bool(forKey: Keys.amberAmbientEnabled)
+        let savedK = defaults.double(forKey: Keys.amberTemperatureK)
+        self.amberTemperatureK = savedK >= 2500.0 ? savedK : 3200.0
+        self.amberRestoreOnWake = defaults.bool(forKey: Keys.amberRestoreOnWake)
+        self.suppressResetOnQuitPrompt = defaults.bool(forKey: Keys.suppressResetOnQuitPrompt)
+        self.resetOnQuitChoice = defaults.bool(forKey: Keys.resetOnQuitChoice)
 
         // 校验系统真实自启状态
         checkSystemLaunchAtLoginStatus()
@@ -223,5 +275,8 @@ public final class SiriusPreferences: ObservableObject {
         self.launchAtLogin = false
         self.isPaused = false
         self.pauseUntil = nil
+        self.amberAmbientEnabled = false
+        self.amberTemperatureK = 3200.0
+        self.amberRestoreOnWake = false
     }
 }

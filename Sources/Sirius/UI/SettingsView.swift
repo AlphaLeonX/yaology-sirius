@@ -245,6 +245,107 @@ public struct SettingsView: View {
             .background(Color(nsColor: .controlBackgroundColor))
             .cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.06), lineWidth: 1))
+
+            // 4. 琥珀微光与护眼 (Amber Ambient)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("琥珀微光 (待机低蓝光护眼)")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.primary)
+                            Text("MacBook 在待机变暗时同步调低蓝光输出，模拟温润烛光，消除余光视觉刺激。")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Toggle("", isOn: $preferences.amberAmbientEnabled)
+                        .toggleStyle(.switch)
+                }
+
+                if preferences.amberAmbientEnabled {
+                    Divider().opacity(0.15)
+
+                    // 色温滑块
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("暖光色温")
+                                .font(.system(size: 12, weight: .medium))
+                            Spacer()
+                            Text("\(Int(preferences.amberTemperatureK))K")
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .monospacedDigit()
+                                .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                        }
+
+                        Slider(
+                            value: $preferences.amberTemperatureK,
+                            in: 2500...5500,
+                            step: 100,
+                            onEditingChanged: { editing in
+                                if editing {
+                                    SiriusStateMachine.shared.previewAmberTemperature(kelvin: preferences.amberTemperatureK)
+                                } else {
+                                    SiriusStateMachine.shared.endPreviewAmberTemperature()
+                                }
+                            }
+                        )
+                        .tint(Color(red: 0.98, green: 0.65, blue: 0.22))
+
+                        HStack {
+                            Button("2500K 烛光 (极暖)") {
+                                setKelvin(2500)
+                            }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10))
+                            .foregroundColor(abs(preferences.amberTemperatureK - 2500) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
+
+                            Spacer()
+
+                            Button("3200K 经典琥珀 (推荐)") {
+                                setKelvin(3200)
+                            }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10))
+                            .foregroundColor(abs(preferences.amberTemperatureK - 3200) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
+
+                            Spacer()
+
+                            Button("4500K 温和暖调") {
+                                setKelvin(4500)
+                            }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10))
+                            .foregroundColor(abs(preferences.amberTemperatureK - 4500) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
+                        }
+                    }
+
+                    Divider().opacity(0.15)
+
+                    // 唤醒行为子选项
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle(isOn: $preferences.amberRestoreOnWake) {
+                            Text("光标划回唤醒时还原自然色彩")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.primary)
+                        }
+                        .toggleStyle(.checkbox)
+
+                        Text("默认不勾选：划回 Mac 唤醒后继续保持舒适护眼暖光，避免夜间被骤亮白光刺眼。如需作图校色，可勾选此项以在唤醒时即刻还原标准自然色。")
+                            .font(.system(size: 10.5))
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 18)
+                    }
+                }
+            }
+            .padding(14)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(8)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.06), lineWidth: 1))
         }
     }
 
@@ -394,9 +495,37 @@ public struct SettingsView: View {
             .cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.06), lineWidth: 1))
 
+            // 退出提示与重置选项
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("退出提示与配置重置保护")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.primary)
+                        Text(preferences.suppressResetOnQuitPrompt
+                            ? "当前已记住选择：退出时\(preferences.resetOnQuitChoice ? "自动重置为默认配置" : "自动保留当前配置")。"
+                            : "每次退出 Sirius 时，系统将友好弹窗确认是否重置或保留当前配置。")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    if preferences.suppressResetOnQuitPrompt {
+                        Button("重新开启提示") {
+                            preferences.suppressResetOnQuitPrompt = false
+                        }
+                        .font(.system(size: 11))
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+            .padding(14)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(8)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.06), lineWidth: 1))
+
             // 关于与重置
             HStack {
-                Text("Sirius v1.1.1 · Yaology")
+                Text("Sirius v1.2.0 · Yaology")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
 
@@ -410,6 +539,14 @@ public struct SettingsView: View {
                 .foregroundColor(.red.opacity(0.85))
             }
             .padding(.top, 4)
+        }
+    }
+
+    private func setKelvin(_ k: Double) {
+        preferences.amberTemperatureK = k
+        SiriusStateMachine.shared.previewAmberTemperature(kelvin: k)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            SiriusStateMachine.shared.endPreviewAmberTemperature()
         }
     }
 

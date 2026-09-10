@@ -46,6 +46,7 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
 
     private let preferences = SiriusPreferences.shared
     private let engine = BrightnessEngine.shared
+    private let colorEngine = ColorTemperatureEngine.shared
     private let autoBrightness = AutoBrightnessManager.shared
     private let cursorTracker = CursorTracker()
     private let hotKeyManager = HotKeyManager.shared
@@ -193,6 +194,32 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
         }
     }
 
+    /// 用户拖动琥珀色温滑块时实时预览色温
+    public func previewAmberTemperature(kelvin: Double) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self.colorEngine.previewTemperature(kelvin: kelvin)
+        }
+    }
+
+    /// 用户松开色温滑块，根据当前状态平滑恢复或维持
+    public func endPreviewAmberTemperature() {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            if case .active = self.currentState {
+                if !self.preferences.amberAmbientEnabled || self.preferences.amberRestoreOnWake {
+                    self.colorEngine.restoreSystemColor(duration: 0.25)
+                }
+            } else if case .dimmed = self.currentState {
+                if self.preferences.amberAmbientEnabled {
+                    self.colorEngine.transitionToWarm(kelvin: self.preferences.amberTemperatureK, duration: 0.15)
+                } else {
+                    self.colorEngine.restoreSystemColor(duration: 0.15)
+                }
+            }
+        }
+    }
+
     // MARK: - 内部状态调度
 
     private func enterPausedState(until: Date?) {
@@ -200,6 +227,7 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
         stopActiveSyncTimer()
         cancelCooldown()
         autoBrightness.restoreAutoBrightnessAfterWaking()
+        colorEngine.restoreSystemColor(duration: preferences.fadeInDuration)
         engine.transition(to: engine.userActiveBrightness, duration: preferences.fadeInDuration)
         updateState(.paused(until: until))
     }
@@ -223,6 +251,7 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
             stopActiveSyncTimer()
             cancelCooldown()
             autoBrightness.restoreAutoBrightnessAfterWaking()
+            colorEngine.forceRestoreNative()
             engine.immediateSet(brightness: engine.userActiveBrightness)
             updateState(.dormant(reason: "单屏幕独立工作"))
             return
@@ -259,6 +288,16 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
             // 从暗光或渐暗过程中唤醒，或从单屏/暂停恢复
             updateState(.waking)
             let target = max(preferences.userActiveBrightness, preferences.ambientFloor + 0.20, 0.60)
+
+            // 色彩处理：若开启琥珀微光且勾选“唤醒时还原自然色”，平滑淡出暖光还原系统色；若未勾选，保持舒适护眼暖光
+            if preferences.amberAmbientEnabled {
+                if preferences.amberRestoreOnWake {
+                    colorEngine.restoreSystemColor(duration: preferences.fadeInDuration)
+                }
+            } else {
+                colorEngine.restoreSystemColor(duration: 0.0)
+            }
+
             engine.transition(to: target, duration: preferences.fadeInDuration) { [weak self] in
                 guard let self = self else { return }
                 self.autoBrightness.restoreAutoBrightnessAfterWaking()
@@ -346,6 +385,13 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
         let duration = preferences.fadeOutDuration
         let targetBrightness = floor // 直接平滑暗化到底噪设定值
 
+        // 琥珀微光：平滑过渡至护眼暖色
+        if preferences.amberAmbientEnabled {
+            colorEngine.transitionToWarm(kelvin: preferences.amberTemperatureK, duration: duration)
+        } else {
+            colorEngine.restoreSystemColor(duration: 0.0)
+        }
+
         engine.transition(to: targetBrightness, duration: duration) { [weak self] in
             guard let self = self else { return }
             self.updateState(.dimmed)
@@ -383,7 +429,7 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
     private func setupObservers() {
         let ws = NSWorkspace.shared.notificationCenter
 
-        // 系统即将休眠：复原亮度与自动亮度
+        // 系统即将休眠：复原亮度与自动亮度及屏幕色彩
         ws.addObserver(
             forName: NSWorkspace.willSleepNotification,
             object: nil,
@@ -392,16 +438,18 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
             guard let self = self else { return }
             self.cancelCooldown()
             self.autoBrightness.restoreAutoBrightnessAfterWaking()
+            self.colorEngine.forceRestoreNative()
             self.engine.immediateSet(brightness: self.engine.userActiveBrightness)
         }
 
-        // 系统从休眠中唤醒：延迟 1 秒后重新评估双星状态
+        // 系统从休眠中唤醒：延迟 1 秒后重新评估双星状态，并捕获色彩基准
         ws.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
+            self.colorEngine.captureBaseline()
             self.queue.asyncAfter(deadline: .now() + 1.0) {
                 self.evaluateCurrentEnvironment()
             }

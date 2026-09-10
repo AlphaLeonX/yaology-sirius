@@ -52,7 +52,7 @@
     }
 
     .display-screen {
-      transition: opacity 0.2s ease-out, filter 0.2s ease-out, box-shadow 0.2s ease-out;
+      transition: opacity 0.2s ease-out, filter 0.2s ease-out, box-shadow 0.2s ease-out, background 0.3s ease-out;
     }
 
     /* Custom range slider styling */
@@ -108,7 +108,7 @@
     </div>
   </header>
 
-  <!-- Hero Section: Pure Editorial Architecture (Aligned with Desktop Workbench) -->
+  <!-- Hero Section -->
   <section class="max-w-5xl mx-auto px-6 pt-12 md:pt-16 pb-6">
     <div class="max-w-3xl space-y-5">
       
@@ -318,8 +318,43 @@
             </div>
           </div>
 
+          <!-- Control: Amber Ambient Toggle & Slider (New in v1.2) -->
+          <div class="space-y-2 pt-2 border-t border-white/[0.04]">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span class="text-xs font-mono text-neutral-300" data-i18n="hud.amber_title">琥珀微光 (低蓝光护眼)</span>
+              </div>
+              <button id="amber-toggle-btn" onclick="toggleAmberAmbient()" class="px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 hover:text-white">
+                OFF
+              </button>
+            </div>
+
+            <div id="amber-slider-container" class="space-y-1.5 hidden pt-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-neutral-400" data-i18n="hud.amber_temp">色温强度</span>
+                <span id="amber-kelvin-val" class="font-bold text-amber-400">3200K</span>
+              </div>
+              <input 
+                type="range" 
+                id="amber-slider" 
+                min="2500" 
+                max="5500" 
+                value="3200" 
+                step="100" 
+                class="w-full cursor-pointer"
+                oninput="handleAmberTempChange(this.value)"
+              />
+              <div class="flex justify-between text-[9px] font-mono text-neutral-500" data-i18n="hud.amber_scale">
+                <span>2500K 烛光</span>
+                <span>3200K 经典</span>
+                <span>5500K 温和</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Control 2: Cooldown Delay Buttons -->
-          <div class="space-y-2 pt-1">
+          <div class="space-y-2 pt-2 border-t border-white/[0.04]">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono text-neutral-300" data-i18n="hud.delay_title">离开延时 (Cooldown)</span>
               <span id="hud-delay-val" class="text-xs font-mono text-neutral-400">3.0s</span>
@@ -353,7 +388,7 @@
     </div>
 
 
-    <!-- 3 Simple Facts (三点说清楚优势) -->
+    <!-- 3 Simple Facts -->
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
       
       <div class="p-6 rounded-xl bg-card border border-borderHairline space-y-2.5">
@@ -383,7 +418,7 @@
     </div>
 
 
-    <!-- Download Section (纯粹、清晰、无废话) -->
+    <!-- Download Section -->
     <section id="download" class="mt-20 p-8 md:p-10 rounded-2xl bg-card border border-borderHairline space-y-8">
       
       <div class="max-w-xl space-y-2">
@@ -482,6 +517,9 @@
         'hud.title': 'Sirius 控制中心',
         'hud.floor_title': '微光底噪 (Ambient Floor)',
         'hud.floor_scale': '<span>5% 极暗防窥</span><span class="text-neutral-400">12% 默认</span><span>30% 清晰可见</span>',
+        'hud.amber_title': '琥珀微光 (低蓝光护眼)',
+        'hud.amber_temp': '色温强度',
+        'hud.amber_scale': '<span>2500K 烛光</span><span>3200K 经典</span><span>5500K 温和</span>',
         'hud.delay_title': '离开延时 (Cooldown)',
         'feat1.kicker': '01. 真实硬件调光',
         'feat1.title': '0 功耗，真降温',
@@ -523,6 +561,9 @@
         'hud.title': 'Sirius Control Center',
         'hud.floor_title': 'Ambient Floor',
         'hud.floor_scale': '<span>5% Deep Eclipse</span><span class="text-neutral-400">12% Default</span><span>30% Soft & Clear</span>',
+        'hud.amber_title': 'Amber Ambient (Low Blue Light)',
+        'hud.amber_temp': 'Color Temperature',
+        'hud.amber_scale': '<span>2500K Candle</span><span>3200K Classic</span><span>5500K Soft</span>',
         'hud.delay_title': 'Cooldown Delay',
         'feat1.kicker': '01. Real Hardware Dimming',
         'feat1.title': '0W Added Draw, Real Cooling',
@@ -553,6 +594,8 @@
     let currentAmbientFloor = 12; // 12%
     let currentCooldownDelay = 3.0; // 3.0 seconds
     let isPaused = false;
+    let isAmberAmbient = false;
+    let amberKelvin = 3200;
     let currentScreen = 'external'; // 'external' or 'macbook'
     let cooldownTimer = null;
     let cooldownInterval = null;
@@ -577,13 +620,15 @@
     const pauseIcon = document.getElementById('pause-icon');
     const cooldownBarContainer = document.getElementById('cooldown-bar-container');
     const cooldownBar = document.getElementById('cooldown-bar');
+    const amberToggleBtn = document.getElementById('amber-toggle-btn');
+    const amberSliderContainer = document.getElementById('amber-slider-container');
+    const amberKelvinVal = document.getElementById('amber-kelvin-val');
 
     function switchLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('sirius_lang', lang);
       document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
 
-      // Update switcher buttons
       const btnZh = document.getElementById('lang-btn-zh');
       const btnEn = document.getElementById('lang-btn-en');
       if (lang === 'zh') {
@@ -594,7 +639,6 @@
         btnEn.className = 'px-2 py-0.5 rounded transition text-white bg-white/10 font-medium';
       }
 
-      // Update all data-i18n elements
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
@@ -606,10 +650,8 @@
         }
       });
 
-      // Update delay buttons
       updateDelayButtonsText();
 
-      // Refresh dynamic simulator labels
       if (isPaused) {
         pauseText.textContent = lang === 'zh' ? '恢复调光引擎 (⌥S)' : 'Resume Dimming Engine (⌥S)';
         topBadge.textContent = lang === 'zh' ? '❚❚ 状态：调光引擎已暂停（双屏保持 100% 全亮）' : '❚❚ Status: Dimming Engine Paused (Both Displays at 100%)';
@@ -620,7 +662,6 @@
         applyDimmedState();
       }
 
-      // Update download buttons with current tag
       updateDownloadButtonsUi();
     }
 
@@ -656,7 +697,35 @@
       }
     }
 
-    // Calculate visual CSS opacity and brightness from floor percentage (5% to 30%)
+    // Toggle Amber Ambient
+    function toggleAmberAmbient() {
+      isAmberEnabled = !isAmberEnabled;
+      if (isAmberEnabled) {
+        amberToggleBtn.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold transition bg-amber-500/20 border border-amber-500/40 text-amber-300';
+        amberToggleBtn.textContent = 'ON';
+        amberSliderContainer.classList.remove('hidden');
+      } else {
+        amberToggleBtn.className = 'px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 hover:text-white';
+        amberToggleBtn.textContent = 'OFF';
+        amberSliderContainer.classList.add('hidden');
+      }
+
+      if (currentScreen === 'macbook') {
+        applyActiveState();
+      } else {
+        applyDimmedState();
+      }
+    }
+
+    function handleAmberTempChange(val) {
+      amberKelvin = parseInt(val);
+      amberKelvinVal.textContent = `${amberKelvin}K`;
+      if (currentScreen !== 'macbook') {
+        applyDimmedState(true);
+      }
+    }
+
+    // Calculate visual CSS opacity, brightness and color from floor percentage
     function calcDimmedStyles(floorPct) {
       const ratio = (floorPct - 5) / 25; // 0.0 to 1.0
       const opacity = (0.10 + ratio * 0.62).toFixed(2);
@@ -665,47 +734,72 @@
       
       let boxShadow = 'none';
       let frameShadow = 'none';
-      if (floorPct > 8) {
-        const glowOpacity = (ratio * 0.25).toFixed(2);
-        boxShadow = `0 0 20px rgba(52, 211, 153, ${glowOpacity})`;
-        frameShadow = `0 0 24px rgba(52, 211, 153, ${(ratio * 0.15).toFixed(2)})`;
+      let background = 'radial-gradient(ellipse at 50% 10%, #1e293b 0%, #0f172a 65%, #050811 100%)';
+      let filter = `brightness(${brightness}) contrast(${contrast})`;
+
+      if (isAmberEnabled) {
+        // Amber warm glow
+        const warmthRatio = (5500 - amberKelvin) / 3000; // 0.0 ~ 1.0
+        const sepia = (0.40 + warmthRatio * 0.45).toFixed(2);
+        filter = `brightness(${brightness}) contrast(${contrast}) sepia(${sepia}) hue-rotate(-20deg)`;
+        background = 'radial-gradient(ellipse at 50% 10%, #3a2211 0%, #1c0e05 65%, #0a0401 100%)';
+
+        if (floorPct > 8) {
+          const glowOpacity = (ratio * 0.35).toFixed(2);
+          boxShadow = `0 0 22px rgba(245, 158, 11, ${glowOpacity})`;
+          frameShadow = `0 0 25px rgba(245, 158, 11, ${(ratio * 0.20).toFixed(2)})`;
+        }
+      } else {
+        if (floorPct > 8) {
+          const glowOpacity = (ratio * 0.25).toFixed(2);
+          boxShadow = `0 0 20px rgba(52, 211, 153, ${glowOpacity})`;
+          frameShadow = `0 0 24px rgba(52, 211, 153, ${(ratio * 0.15).toFixed(2)})`;
+        }
       }
       
-      return { opacity, brightness, contrast, boxShadow, frameShadow };
+      return { opacity, filter, boxShadow, frameShadow, background };
     }
 
     function applyDimmedState(isPreview = false) {
       const styles = calcDimmedStyles(currentAmbientFloor);
       mbScreen.style.opacity = styles.opacity;
-      mbScreen.style.filter = `brightness(${styles.brightness}) contrast(${styles.contrast})`;
+      mbScreen.style.filter = styles.filter;
       mbScreen.style.boxShadow = styles.boxShadow;
+      mbScreen.style.background = styles.background;
       mbFrame.style.boxShadow = styles.frameShadow;
 
-      mbDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+      mbDot.className = isAmberEnabled ? 'w-1.5 h-1.5 rounded-full bg-amber-400' : 'w-1.5 h-1.5 rounded-full bg-emerald-400';
       
-      let levelLabelZh = '微光';
-      let levelLabelEn = 'Ambient';
-      if (currentAmbientFloor <= 8) {
-        levelLabelZh = '极暗防窥';
-        levelLabelEn = 'Deep Eclipse';
-      } else if (currentAmbientFloor <= 15) {
-        levelLabelZh = '标准微光';
-        levelLabelEn = 'Standard Ambient';
-      } else {
-        levelLabelZh = '柔和明亮';
-        levelLabelEn = 'Soft & Clear';
+      let levelLabelZh = isAmberEnabled ? `琥珀微光 (${amberKelvin}K)` : '微光';
+      let levelLabelEn = isAmberEnabled ? `Amber Ambient (${amberKelvin}K)` : 'Ambient';
+
+      if (!isAmberEnabled) {
+        if (currentAmbientFloor <= 8) {
+          levelLabelZh = '极暗防窥';
+          levelLabelEn = 'Deep Eclipse';
+        } else if (currentAmbientFloor <= 15) {
+          levelLabelZh = '标准微光';
+          levelLabelEn = 'Standard Ambient';
+        } else {
+          levelLabelZh = '柔和明亮';
+          levelLabelEn = 'Soft & Clear';
+        }
       }
 
       const activeLabel = currentLang === 'zh' ? levelLabelZh : levelLabelEn;
       mbPct.textContent = `${currentAmbientFloor}% ${activeLabel}`;
-      mbPct.className = 'text-emerald-300 font-mono font-semibold';
+      mbPct.className = isAmberEnabled ? 'text-amber-300 font-mono font-semibold' : 'text-emerald-300 font-mono font-semibold';
       
       const estWatt = (0.05 + ((currentAmbientFloor - 5) / 25) * 0.30).toFixed(2);
       if (mbWattage) mbWattage.textContent = `${estWatt}W`;
 
       if (mbBacklightMeter) {
         mbBacklightMeter.style.width = `${currentAmbientFloor}%`;
-        mbBacklightMeter.className = currentAmbientFloor <= 8 ? 'h-full bg-neutral-400 rounded-full transition-all duration-150' : 'h-full bg-emerald-400 rounded-full transition-all duration-150';
+        if (isAmberEnabled) {
+          mbBacklightMeter.className = 'h-full bg-amber-400 rounded-full transition-all duration-150';
+        } else {
+          mbBacklightMeter.className = currentAmbientFloor <= 8 ? 'h-full bg-neutral-400 rounded-full transition-all duration-150' : 'h-full bg-emerald-400 rounded-full transition-all duration-150';
+        }
       }
 
       if (isPreview) {
@@ -713,24 +807,28 @@
           ? `实时微光调节 · ${currentAmbientFloor}% 物理背光` 
           : `Live Tuning · ${currentAmbientFloor}% Hardware Backlight`;
         topBadge.textContent = currentLang === 'zh'
-          ? `● 正在调节底噪：MacBook 实时呈现 ${currentAmbientFloor}% 硬件微光背光（${levelLabelZh}）`
+          ? `● 正在调节底噪：MacBook 实时呈现 ${currentAmbientFloor}% 硬件背光（${levelLabelZh}）`
           : `● Tuning Floor: MacBook displaying ${currentAmbientFloor}% ambient backlight (${levelLabelEn})`;
-        topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
+        topBadge.className = 'px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium';
       } else {
         mbCaption.textContent = currentLang === 'zh' 
-          ? '微光潜航 · 硬件降温断电' 
-          : 'Ambient Floor · Hardware Cooled & Throttled';
+          ? (isAmberEnabled ? '琥珀微光 · 护眼低蓝光' : '微光潜航 · 硬件降温断电')
+          : (isAmberEnabled ? 'Amber Ambient · Low Blue Light' : 'Ambient Floor · Hardware Cooled & Throttled');
         topBadge.textContent = currentLang === 'zh'
-          ? `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%)`
-          : `● Status: Mac in Ambient Standby (${currentAmbientFloor}%)`;
-        topBadge.className = 'px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium';
+          ? `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%${isAmberEnabled ? ' · 琥珀护眼' : ''})`
+          : `● Status: Mac in Ambient Standby (${currentAmbientFloor}%${isAmberEnabled ? ' · Amber' : ''})`;
+        topBadge.className = isAmberEnabled 
+          ? 'px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium'
+          : 'px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium';
       }
 
       mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-white/10 transition-all duration-300';
       extFrame.className = 'p-2.5 rounded-xl bg-[#090A0C] border-2 border-sky-500/50 shadow-2xl transition-all duration-300';
 
-      hudBadge.textContent = currentLang === 'zh' ? 'SIRIUS B (微光)' : 'SIRIUS B (DIMMED)';
-      hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-bold';
+      hudBadge.textContent = isAmberEnabled ? 'AMBER AMBIENT' : (currentLang === 'zh' ? 'SIRIUS B (微光)' : 'SIRIUS B (DIMMED)');
+      hudBadge.className = isAmberEnabled
+        ? 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300 font-bold'
+        : 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-bold';
 
       hideCooldownBar();
     }
@@ -742,6 +840,7 @@
       mbScreen.style.opacity = '1.0';
       mbScreen.style.filter = 'brightness(1.0) contrast(1.0)';
       mbScreen.style.boxShadow = '0 0 25px rgba(56, 189, 248, 0.25)';
+      mbScreen.style.background = 'radial-gradient(ellipse at 50% 10%, #1e293b 0%, #0f172a 65%, #050811 100%)';
       mbFrame.style.boxShadow = '0 0 30px rgba(56, 189, 248, 0.20)';
 
       mbDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-400';
@@ -923,7 +1022,6 @@
       });
     }
 
-    // 动态同步 GitHub Releases 最新发布版本与下载直链
     (function syncLatestRelease() {
       const REPO = 'AlphaLeonX/yaology-sirius';
       fetch(`https://api.github.com/repos/${REPO}/releases/latest`)
@@ -955,7 +1053,6 @@
         });
     })();
 
-    // Initialize Language from localStorage or Browser Preference
     (function initLanguage() {
       const savedLang = localStorage.getItem('sirius_lang');
       if (savedLang === 'en' || savedLang === 'zh') {

@@ -105,6 +105,73 @@ public struct TasteSkillPopOverView: View {
             // MARK: - 微光底噪调节滑块 (0%~100%)
             OpticalFloorSlider()
 
+            // MARK: - 琥珀微光低蓝光护眼
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    HStack(spacing: 5) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                        Text("琥珀微光 (低蓝光护眼)")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.primary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $preferences.amberAmbientEnabled)
+                        .toggleStyle(.switch)
+                        .scaleEffect(0.65)
+                        .frame(height: 18)
+                }
+
+                if preferences.amberAmbientEnabled {
+                    VStack(spacing: 3) {
+                        HStack {
+                            Text("色温强度")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(preferences.amberTemperatureK))K")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .monospacedDigit()
+                                .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                        }
+
+                        Slider(
+                            value: $preferences.amberTemperatureK,
+                            in: 2500...5500,
+                            step: 100,
+                            onEditingChanged: { editing in
+                                if editing {
+                                    stateMachine.previewAmberTemperature(kelvin: preferences.amberTemperatureK)
+                                } else {
+                                    stateMachine.endPreviewAmberTemperature()
+                                }
+                            }
+                        )
+                        .tint(Color(red: 0.98, green: 0.65, blue: 0.22))
+
+                        HStack {
+                            Text("2500K 烛光")
+                                .font(.system(size: 8.5))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("5500K 温和")
+                                .font(.system(size: 8.5))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.top, 2)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.6))
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+
             // MARK: - 离开冷静期快捷预设
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
