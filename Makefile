@@ -23,6 +23,16 @@ app:
 dmg:
 	bash scripts/package_dmg.sh
 
+test-new:
+	@pkill -x Sirius 2>/dev/null || true
+	@open dist/Sirius.app
+	@echo "==> 已切换至新特性版本 (dist/Sirius.app)"
+
+restore-stable:
+	@pkill -x Sirius 2>/dev/null || true
+	@open /Applications/Sirius.app
+	@echo "==> 已切回已安装的正式版 (/Applications/Sirius.app)"
+
 clean:
 	swift package clean
 	rm -rf dist .build
