@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-VERSION="1.1.1"
+VERSION="1.2.0"
 DMG_NAME="Sirius-v${VERSION}.dmg"
 ZIP_NAME="Sirius-v${VERSION}.zip"
 DIST_DIR="${ROOT_DIR}/dist"
@@ -33,7 +33,7 @@ ln -s /Applications "${STAGING_DIR}/Applications"
 # 创建首次打开说明 README.txt
 cat << 'README_EOF' > "${STAGING_DIR}/首次安装必读.txt"
 =====================================================
-  Sirius（天狼星）Mac 原生多屏自适应调光引擎 v1.1.1
+  Sirius（天狼星）Mac 原生多屏自适应调光引擎 v1.2.0
 =====================================================
 
 【安装方法】

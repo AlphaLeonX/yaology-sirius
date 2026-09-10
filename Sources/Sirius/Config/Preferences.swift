@@ -3,7 +3,7 @@ import Combine
 import AppKit
 import ServiceManagement
 
-/// 用户偏好与持久化配置 (v1.1.1)
+/// 用户偏好与持久化配置 (v1.2.0)
 public final class SiriusPreferences: ObservableObject {
     public static let shared = SiriusPreferences()
 

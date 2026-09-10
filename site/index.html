@@ -102,7 +102,7 @@
 
         <a href="https://github.com/AlphaLeonX/yaology-sirius" target="_blank" class="text-neutral-400 hover:text-white transition">GitHub</a>
         <a href="#download" class="px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition shadow-sm download-nav-btn" data-i18n="nav.download">
-          下载 v1.1.1
+          下载 v1.2.0
         </a>
       </div>
     </div>
@@ -135,7 +135,7 @@
       <!-- Primary Action & Status Pill -->
       <div class="pt-2 flex flex-wrap items-center gap-4">
         <a href="#download" class="py-3 px-6 rounded-xl bg-white hover:bg-neutral-200 text-black font-semibold text-sm transition shadow-lg flex items-center gap-2 font-sans">
-          <span class="download-hero-text" data-i18n="hero.cta">免费下载 Sirius v1.1.1</span>
+          <span class="download-hero-text" data-i18n="hero.cta">免费下载 Sirius v1.2.0</span>
           <span class="text-xs font-mono text-neutral-500 font-normal">(.dmg)</span>
         </a>
         <div class="text-xs font-mono text-neutral-500 flex items-center gap-2">
@@ -435,7 +435,7 @@
           <span class="text-xs font-mono text-neutral-400 block" data-i18n="dl.dmg_label">标准安装包 (.dmg)</span>
           
           <a id="primary-dmg-link" href="https://github.com/AlphaLeonX/yaology-sirius/releases/latest/download/Sirius-latest.dmg" class="w-full py-3.5 px-6 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-semibold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/10">
-            <span id="primary-download-text">下载 Sirius v1.1.1</span>
+            <span id="primary-download-text">下载 Sirius v1.2.0</span>
             <span id="primary-download-meta" class="text-xs font-mono opacity-80">(2.4MB · macOS 14+)</span>
           </a>
 
@@ -499,12 +499,12 @@
     const TRANSLATIONS = {
       zh: {
         'meta.title': 'Sirius · 外接大屏时，自动变暗 MacBook 屏幕',
-        'nav.download': '下载 v1.1.1',
+        'nav.download': '下载 v1.2.0',
         'hero.tagline1': 'macOS 原生硬件调光',
         'hero.tagline2': '免辅助功能权限',
         'hero.headline': '外接大屏，副屏微光。<br><span class="italic font-light text-neutral-400">视线移回，瞬间点亮。</span>',
         'hero.subtitle': '只点亮你正在聚焦的屏幕。离开 Mac 时自动将副屏降至物理微光底噪，光标划回瞬间 0 秒唤醒。<br class="hidden sm:inline">消除副屏刺眼反光，降低整机发热与功耗，守护 MacBook 屏幕寿命。',
-        'hero.cta': '免费下载 Sirius v1.1.1',
+        'hero.cta': '免费下载 Sirius v1.2.0',
         'hero.badge_free': '免费开源',
         'sim.header_kicker': '真实双屏与设置联动演练场',
         'sim.header_desc': '调节右侧设置窗口，左侧 MacBook 屏幕将实时应用并联动响应：',
@@ -543,12 +543,12 @@
       },
       en: {
         'meta.title': 'Sirius · Native Dual-Display PWM Backlight Governor for Mac',
-        'nav.download': 'Download v1.1.1',
+        'nav.download': 'Download v1.2.0',
         'hero.tagline1': 'macOS Native Hardware Dimming',
         'hero.tagline2': 'Zero Accessibility Permission',
         'hero.headline': 'External in focus, laptop in eclipse.<br><span class="italic font-light text-neutral-400">Move your gaze back, awaken in an instant.</span>',
         'hero.subtitle': 'Illuminate only where your attention lives. Dips your built-in display to a quiet hardware ambient floor when using an external monitor, waking it in 0ms the moment your cursor returns.<br class="hidden sm:inline">Eliminate ambient glare, reduce heat and battery drain, and prolong display panel lifespan.',
-        'hero.cta': 'Download Sirius v1.1.1 Free',
+        'hero.cta': 'Download Sirius v1.2.0 Free',
         'hero.badge_free': 'Free & Open Source',
         'sim.header_kicker': 'Interactive Dual-Display & HUD Workbench',
         'sim.header_desc': 'Adjust the settings on the right; the simulated MacBook display responds in real time:',
@@ -599,7 +599,7 @@
     let currentScreen = 'external'; // 'external' or 'macbook'
     let cooldownTimer = null;
     let cooldownInterval = null;
-    let currentReleaseTag = 'v1.1.1';
+    let currentReleaseTag = 'v1.2.0';
     let currentReleaseSize = '2.4';
 
     // DOM Elements
@@ -1031,7 +1031,7 @@
         })
         .then(release => {
           if (!release || !release.assets) return;
-          const tag = release.tag_name || 'v1.1.1';
+          const tag = release.tag_name || 'v1.2.0';
           currentReleaseTag = tag;
           const dmgAsset = release.assets.find(a => a.name.endsWith('.dmg') && !a.name.includes('latest')) || release.assets.find(a => a.name.endsWith('.dmg'));
           if (dmgAsset) {
