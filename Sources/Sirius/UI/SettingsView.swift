@@ -50,6 +50,8 @@ public struct SettingsView: View {
                                 .font(.system(size: 11))
                             Text(tab.title)
                                 .font(.system(size: 12, weight: selectedTab == tab ? .semibold : .regular))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -82,7 +84,7 @@ public struct SettingsView: View {
                 .padding(20)
             }
         }
-        .frame(width: 500, height: 380)
+        .frame(width: 540, height: 430)
         .background(Color(nsColor: .windowBackgroundColor))
         .onDisappear {
             stopRecording()
@@ -334,20 +336,22 @@ public struct SettingsView: View {
                         .tint(Color(red: 0.98, green: 0.65, blue: 0.22))
 
                         HStack {
-                            Button(loc("2500K 烛光 (极暖)", "2500K Candle (Ultra Warm)")) {
+                            Button(loc("2500K 烛光 (极暖)", "2500K Candle (Ultra)")) {
                                 setKelvin(2500)
                             }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
+                            .lineLimit(1)
                             .foregroundColor(abs(preferences.amberTemperatureK - 2500) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
 
                             Spacer()
 
-                            Button(loc("3200K 经典琥珀 (推荐)", "3200K Amber (Recommended)")) {
+                            Button(loc("3200K 经典琥珀 (推荐)", "3200K Amber (Rec)")) {
                                 setKelvin(3200)
                             }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
+                            .lineLimit(1)
                             .foregroundColor(abs(preferences.amberTemperatureK - 3200) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
 
                             Spacer()
@@ -357,6 +361,7 @@ public struct SettingsView: View {
                             }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
+                            .lineLimit(1)
                             .foregroundColor(abs(preferences.amberTemperatureK - 4500) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
                         }
                     }
@@ -428,6 +433,8 @@ public struct SettingsView: View {
         }) {
             Text(label)
                 .font(.system(size: 10, weight: abs(preferences.cooldownDelay - val) < 0.1 ? .semibold : .regular))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundColor(abs(preferences.cooldownDelay - val) < 0.1 ? .white : .primary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)

@@ -23,6 +23,7 @@ public struct TasteSkillPopOverView: View {
                         .tracking(-0.3)
                     Text(loc("Mac 多屏引力调光 · α CMa", "Mac Dual-Display Dimmer · α CMa"))
                         .font(.system(size: 9, weight: .medium))
+                        .lineLimit(1)
                         .foregroundColor(.secondary)
                 }
 
@@ -56,6 +57,7 @@ public struct TasteSkillPopOverView: View {
                             .font(.system(size: 10, weight: .medium))
                         Text(preferences.isPaused ? loc("恢复调光", "Resume") : loc("快捷暂停", "Pause"))
                             .font(.system(size: 11, weight: .medium))
+                            .lineLimit(1)
                         Text(preferences.hotKeyDisplayString)
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .monospacedDigit()
@@ -191,6 +193,7 @@ public struct TasteSkillPopOverView: View {
                             .font(.system(size: 9, weight: .semibold))
                         Text(loc("退出 Sirius", "Quit Sirius"))
                             .font(.system(size: 10, weight: .medium))
+                            .lineLimit(1)
                     }
                     .foregroundColor(.red.opacity(0.85))
                     .padding(.horizontal, 8)

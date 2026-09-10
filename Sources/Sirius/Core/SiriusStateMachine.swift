@@ -21,7 +21,14 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
         public var localizedDescription: String {
             switch self {
             case .dormant(let reason):
-                return loc("待机 (\(reason))", "Standby (\(reason))")
+                let localizedReason: String
+                switch reason {
+                case "初始化": localizedReason = loc("初始化", "Initializing")
+                case "单屏幕独立工作": localizedReason = loc("单屏幕独立工作", "Single Display Mode")
+                case "未检测到内建屏幕": localizedReason = loc("未检测到内建屏幕", "No Built-in Screen")
+                default: localizedReason = reason
+                }
+                return loc("待机 (\(localizedReason))", "Standby (\(localizedReason))")
             case .active:
                 return loc("伴星全亮 (焦点在 Mac)", "Companion Active (Focus on Mac)")
             case .cooldown:
