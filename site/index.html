@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sirius · 外接大屏时，自动变暗 MacBook 屏幕</title>
+  <title data-i18n="meta.title">Sirius · 外接大屏时，自动变暗 MacBook 屏幕</title>
   
   <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="assets/icons/01_gravitational_eclipse.jpg">
@@ -81,7 +81,7 @@
 <body class="min-h-screen selection:bg-sky-500/30 selection:text-sky-200">
 
   <!-- Minimal Clean Nav -->
-  <header class="border-b border-white/[0.06] px-6 py-4">
+  <header class="border-b border-white/[0.06] px-6 py-4 sticky top-0 bg-[#0C0D0E]/80 backdrop-blur-md z-50">
     <div class="max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <div class="w-8 h-8 squircle overflow-hidden border border-white/20 bg-black flex-shrink-0 shadow-sm">
@@ -93,9 +93,15 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-4 text-xs font-mono">
+      <div class="flex items-center space-x-3 sm:space-x-4 text-xs font-mono">
+        <!-- Language Switcher -->
+        <div class="flex items-center rounded-lg bg-white/[0.04] border border-white/[0.08] p-0.5 text-xs font-mono">
+          <button id="lang-btn-zh" onclick="switchLanguage('zh')" class="px-2 py-0.5 rounded transition text-white bg-white/10 font-medium">中</button>
+          <button id="lang-btn-en" onclick="switchLanguage('en')" class="px-2 py-0.5 rounded transition text-neutral-400 hover:text-white font-medium">EN</button>
+        </div>
+
         <a href="https://github.com/AlphaLeonX/yaology-sirius" target="_blank" class="text-neutral-400 hover:text-white transition">GitHub</a>
-        <a href="#download" class="px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition shadow-sm download-nav-btn">
+        <a href="#download" class="px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition shadow-sm download-nav-btn" data-i18n="nav.download">
           下载 v1.1.1
         </a>
       </div>
@@ -103,25 +109,25 @@
   </header>
 
   <!-- Hero Section: Pure Editorial Architecture (Aligned with Desktop Workbench) -->
-  <section class="max-w-5xl mx-auto px-6 pt-14 md:pt-18 pb-6">
+  <section class="max-w-5xl mx-auto px-6 pt-12 md:pt-16 pb-6">
     <div class="max-w-3xl space-y-5">
       
       <!-- Overline Kicker -->
       <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-neutral-400">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-        <span class="text-neutral-300">macOS 原生硬件调光</span>
+        <span class="text-neutral-300" data-i18n="hero.tagline1">macOS 原生硬件调光</span>
         <span class="text-neutral-600">·</span>
-        <span class="text-neutral-400">免辅助功能权限</span>
+        <span class="text-neutral-400" data-i18n="hero.tagline2">免辅助功能权限</span>
       </div>
 
       <!-- Headline: Master Typographic Dualism (Newsreader Serif) -->
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif text-white tracking-tight leading-[1.12]">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif text-white tracking-tight leading-[1.12]" data-i18n="hero.headline">
         外接大屏，副屏微光。<br>
         <span class="italic font-light text-neutral-400">视线移回，瞬间点亮。</span>
       </h1>
 
       <!-- Subtitle -->
-      <p class="text-base sm:text-lg text-neutral-400 font-sans leading-relaxed max-w-2xl">
+      <p class="text-base sm:text-lg text-neutral-400 font-sans leading-relaxed max-w-2xl" data-i18n="hero.subtitle">
         只点亮你正在聚焦的屏幕。离开 Mac 时自动将副屏降至物理微光底噪，光标划回瞬间 0 秒唤醒。<br class="hidden sm:inline">
         消除副屏刺眼反光，降低整机发热与功耗，守护 MacBook 屏幕寿命。
       </p>
@@ -129,7 +135,7 @@
       <!-- Primary Action & Status Pill -->
       <div class="pt-2 flex flex-wrap items-center gap-4">
         <a href="#download" class="py-3 px-6 rounded-xl bg-white hover:bg-neutral-200 text-black font-semibold text-sm transition shadow-lg flex items-center gap-2 font-sans">
-          <span class="download-hero-text">免费下载 Sirius v1.1.1</span>
+          <span class="download-hero-text" data-i18n="hero.cta">免费下载 Sirius v1.1.1</span>
           <span class="text-xs font-mono text-neutral-500 font-normal">(.dmg)</span>
         </a>
         <div class="text-xs font-mono text-neutral-500 flex items-center gap-2">
@@ -137,7 +143,7 @@
           <span>·</span>
           <span>Apple Silicon & Intel</span>
           <span>·</span>
-          <span class="text-neutral-400">免费开源</span>
+          <span class="text-neutral-400" data-i18n="hero.badge_free">免费开源</span>
         </div>
       </div>
 
@@ -148,18 +154,18 @@
   <main class="max-w-5xl mx-auto px-6 pb-20">
 
     <!-- Live Interactive Dual-Display Simulator + Real Settings HUD Window -->
-    <div class="mt-10 p-6 md:p-8 rounded-2xl bg-card border border-borderHairline relative overflow-hidden space-y-6">
+    <div class="mt-8 p-6 md:p-8 rounded-2xl bg-card border border-borderHairline relative overflow-hidden space-y-6">
       
       <!-- Simulator Top Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
         <div>
-          <span class="text-xs font-mono text-neutral-400 block">真实双屏与设置联动演练场</span>
-          <span class="text-sm font-serif text-white">调节右侧设置窗口，左侧 MacBook 屏幕将实时应用并联动响应：</span>
+          <span class="text-xs font-mono text-neutral-400 block" data-i18n="sim.header_kicker">真实双屏与设置联动演练场</span>
+          <span class="text-sm font-serif text-white" data-i18n="sim.header_desc">调节右侧设置窗口，左侧 MacBook 屏幕将实时应用并联动响应：</span>
         </div>
 
         <div class="flex items-center gap-2 text-xs font-mono">
           <span id="top-status-badge" class="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium">
-            ● 状态：Mac 处于微光待机
+            ● 状态：Mac 处于微光待机 (12%)
           </span>
         </div>
       </div>
@@ -180,9 +186,9 @@
                   <div class="flex items-center justify-between text-[10px] font-mono border-b border-white/[0.08] pb-1.5">
                     <span class="flex items-center gap-1.5 text-white font-medium">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                      外接大屏 · 27" 4K
+                      <span data-i18n="sim.ext_title">外接大屏 · 27" 4K</span>
                     </span>
-                    <span class="text-sky-400 font-semibold font-mono">100% 全亮</span>
+                    <span class="text-sky-400 font-semibold font-mono" data-i18n="sim.ext_status">100% 全亮</span>
                   </div>
 
                   <!-- Mock IDE / Code Window -->
@@ -198,8 +204,8 @@
                   </div>
 
                   <div class="text-[9px] font-mono text-neutral-400 flex items-center justify-between pt-1 border-t border-white/[0.06]">
-                    <span class="text-neutral-300">主工作区 (活跃)</span>
-                    <span class="text-sky-400/80 font-mono">物理背光 100% 满载</span>
+                    <span class="text-neutral-300" data-i18n="sim.ext_active">主工作区 (活跃)</span>
+                    <span class="text-sky-400/80 font-mono" data-i18n="sim.ext_power">物理背光 100% 满载</span>
                   </div>
                 </div>
               </div>
@@ -227,7 +233,7 @@
                   <!-- Mini Window Content -->
                   <div class="p-1.5 rounded bg-white/[0.05] border border-white/[0.08] space-y-1 my-0.5">
                     <div class="flex items-center justify-between text-[7.5px] font-mono text-neutral-400">
-                      <span>副屏 · 备忘录</span>
+                      <span data-i18n="sim.mb_notes">副屏 · 备忘录</span>
                       <span class="text-neutral-500">10:42</span>
                     </div>
                     <div class="h-1 bg-white/40 rounded w-4/5"></div>
@@ -261,7 +267,7 @@
             <div id="cooldown-bar" class="bg-amber-400 h-full w-full transition-all ease-linear" style="transform: scaleX(0); transform-origin: left;"></div>
           </div>
 
-          <p class="text-center text-[11px] font-mono text-neutral-500">
+          <p class="text-center text-[11px] font-mono text-neutral-500" data-i18n="sim.tip">
             提示：将鼠标在上方两块屏幕间移动，感受离开冷静缓冲与瞬间唤醒
           </p>
         </div>
@@ -276,7 +282,7 @@
               <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]/80"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]/80"></span>
               <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]/80"></span>
-              <span class="text-xs font-serif text-neutral-300 ml-1.5">Sirius 控制中心</span>
+              <span class="text-xs font-serif text-neutral-300 ml-1.5" data-i18n="hud.title">Sirius 控制中心</span>
             </div>
 
             <!-- Dynamic State Badge -->
@@ -288,7 +294,7 @@
           <!-- Control 1: Ambient Floor Slider -->
           <div class="space-y-2 pt-1">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-mono text-neutral-300">微光底噪 (Ambient Floor)</span>
+              <span class="text-xs font-mono text-neutral-300" data-i18n="hud.floor_title">微光底噪 (Ambient Floor)</span>
               <span id="hud-floor-val" class="text-xs font-mono font-bold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-500/30">
                 12%
               </span>
@@ -305,7 +311,7 @@
               oninput="handleAmbientFloorChange(this.value)"
             />
 
-            <div class="flex justify-between text-[9px] font-mono text-neutral-500">
+            <div class="flex justify-between text-[9px] font-mono text-neutral-500" data-i18n="hud.floor_scale">
               <span>5% 极暗防窥</span>
               <span class="text-neutral-400">12% 默认</span>
               <span>30% 清晰可见</span>
@@ -315,18 +321,18 @@
           <!-- Control 2: Cooldown Delay Buttons -->
           <div class="space-y-2 pt-1">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-mono text-neutral-300">离开延时 (Cooldown)</span>
+              <span class="text-xs font-mono text-neutral-300" data-i18n="hud.delay_title">离开延时 (Cooldown)</span>
               <span id="hud-delay-val" class="text-xs font-mono text-neutral-400">3.0s</span>
             </div>
 
             <div class="grid grid-cols-3 gap-2 text-xs font-mono">
-              <button onclick="setCooldown(1.0, this)" class="delay-btn py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/10 text-neutral-300 transition">
+              <button onclick="setCooldown(1.0, this)" class="delay-btn py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/10 text-neutral-300 transition" data-delay="1.0">
                 1 秒
               </button>
-              <button onclick="setCooldown(3.0, this)" class="delay-btn active-delay py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-300 font-semibold transition">
+              <button onclick="setCooldown(3.0, this)" class="delay-btn active-delay py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-300 font-semibold transition" data-delay="3.0">
                 3 秒 (推)
               </button>
-              <button onclick="setCooldown(5.0, this)" class="delay-btn py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/10 text-neutral-300 transition">
+              <button onclick="setCooldown(5.0, this)" class="delay-btn py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/10 text-neutral-300 transition" data-delay="5.0">
                 5 秒
               </button>
             </div>
@@ -351,25 +357,25 @@
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
       
       <div class="p-6 rounded-xl bg-card border border-borderHairline space-y-2.5">
-        <span class="text-xs font-mono text-sky-400 font-semibold block">01. 真实硬件调光</span>
-        <h3 class="text-base font-serif text-white">0 功耗，真降温</h3>
-        <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+        <span class="text-xs font-mono text-sky-400 font-semibold block" data-i18n="feat1.kicker">01. 真实硬件调光</span>
+        <h3 class="text-base font-serif text-white" data-i18n="feat1.title">0 功耗，真降温</h3>
+        <p class="text-xs text-neutral-400 font-sans leading-relaxed" data-i18n="feat1.desc">
           直接控制苹果屏幕物理背光供电芯片。拒绝市面上“覆盖黑色半透明窗口”的伪调光，真正关闭发光二极管，机身不发热，不伤电池。
         </p>
       </div>
 
       <div class="p-6 rounded-xl bg-card border border-borderHairline space-y-2.5">
-        <span class="text-xs font-mono text-emerald-400 font-semibold block">02. 智能防误触</span>
-        <h3 class="text-base font-serif text-white">移开 3 秒缓释，划回秒亮</h3>
-        <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+        <span class="text-xs font-mono text-emerald-400 font-semibold block" data-i18n="feat2.kicker">02. 智能防误触</span>
+        <h3 class="text-base font-serif text-white" data-i18n="feat2.title">移开 3 秒缓释，划回秒亮</h3>
+        <p class="text-xs text-neutral-400 font-sans leading-relaxed" data-i18n="feat2.desc">
           鼠标移出后提供 3 秒冷静期，避免路过边缘引发忽明忽暗；鼠标划回 Mac 时，0 秒等待瞬时补光，视线移到时屏幕已全亮。
         </p>
       </div>
 
       <div class="p-6 rounded-xl bg-card border border-borderHairline space-y-2.5">
-        <span class="text-xs font-mono text-amber-400 font-semibold block">03. 极简与安全</span>
-        <h3 class="text-base font-serif text-white">零权限，不常驻发热</h3>
-        <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+        <span class="text-xs font-mono text-amber-400 font-semibold block" data-i18n="feat3.kicker">03. 极简与安全</span>
+        <h3 class="text-base font-serif text-white" data-i18n="feat3.title">零权限，不常驻发热</h3>
+        <p class="text-xs text-neutral-400 font-sans leading-relaxed" data-i18n="feat3.desc">
           不向系统索取敏感的“辅助功能”或“键盘监听”权限。内存占用仅 12MB，闲置 CPU 0.00%。随时支持 <code class="text-neutral-300 font-mono">⌥+S</code> 一键暂停。
         </p>
       </div>
@@ -381,8 +387,8 @@
     <section id="download" class="mt-20 p-8 md:p-10 rounded-2xl bg-card border border-borderHairline space-y-8">
       
       <div class="max-w-xl space-y-2">
-        <h2 class="text-2xl sm:text-3xl font-serif text-white tracking-tight">免费获取 Sirius</h2>
-        <p class="text-xs sm:text-sm text-neutral-400 font-sans">
+        <h2 class="text-2xl sm:text-3xl font-serif text-white tracking-tight" data-i18n="dl.title">免费获取 Sirius</h2>
+        <p class="text-xs sm:text-sm text-neutral-400 font-sans" data-i18n="dl.desc">
           独立开源作品，无广告、无内购、无隐私追踪。支持全系 Apple Silicon (M1~M5) 及 Intel Mac。
         </p>
       </div>
@@ -391,7 +397,7 @@
         
         <!-- Primary Download Button -->
         <div class="p-6 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-4">
-          <span class="text-xs font-mono text-neutral-400 block">标准安装包 (.dmg)</span>
+          <span class="text-xs font-mono text-neutral-400 block" data-i18n="dl.dmg_label">标准安装包 (.dmg)</span>
           
           <a id="primary-dmg-link" href="https://github.com/AlphaLeonX/yaology-sirius/releases/latest/download/Sirius-latest.dmg" class="w-full py-3.5 px-6 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-semibold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/10">
             <span id="primary-download-text">下载 Sirius v1.1.1</span>
@@ -400,11 +406,11 @@
 
           <!-- Gatekeeper One-line Hint -->
           <div class="text-[11px] text-neutral-400 font-sans space-y-1.5 pt-2 border-t border-white/[0.04]">
-            <p class="text-neutral-300 font-medium">首次打开提示“无法验证开发者”？</p>
-            <p>因未支付苹果年费，首次打开若被拦截，在终端粘贴此命令即可永久解除：</p>
+            <p class="text-neutral-300 font-medium" data-i18n="dl.gk_title">首次打开提示“无法验证开发者”？</p>
+            <p data-i18n="dl.gk_desc">因未支付苹果年费，首次打开若被拦截，在终端粘贴此命令即可永久解除：</p>
             <div class="flex items-center justify-between p-2 rounded bg-black/60 border border-white/[0.06] text-xs font-mono text-neutral-200">
               <code>xattr -cr /Applications/Sirius.app</code>
-              <button onclick="copyCode('xattr -cr /Applications/Sirius.app')" class="text-sky-400 hover:text-sky-300 text-[10px] ml-2">复制</button>
+              <button onclick="copyCode('xattr -cr /Applications/Sirius.app')" class="text-sky-400 hover:text-sky-300 text-[10px] ml-2" data-i18n="btn.copy">复制</button>
             </div>
           </div>
         </div>
@@ -412,24 +418,24 @@
         <!-- Terminal Install -->
         <div class="p-6 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono text-neutral-400">极客一行命令安装</span>
-            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20">免隔离弹窗</span>
+            <span class="text-xs font-mono text-neutral-400" data-i18n="dl.term_label">极客一行命令安装</span>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20" data-i18n="dl.term_badge">免隔离弹窗</span>
           </div>
 
-          <p class="text-xs text-neutral-400 font-sans">
+          <p class="text-xs text-neutral-400 font-sans" data-i18n="dl.term_desc">
             通过终端脚本安装的文件不会被系统添加隔离标记，装完直接秒开：
           </p>
 
           <div class="space-y-1.5">
             <div class="flex items-center justify-between p-3 rounded-xl bg-black border border-white/[0.1] text-xs font-mono text-neutral-200">
               <code class="break-all">curl -fsSL https://sirius.yaology.com/install.sh | bash</code>
-              <button onclick="copyCode('curl -fsSL https://sirius.yaology.com/install.sh | bash')" class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sky-400 font-medium transition text-[11px] ml-2 shrink-0">
+              <button onclick="copyCode('curl -fsSL https://sirius.yaology.com/install.sh | bash')" class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sky-400 font-medium transition text-[11px] ml-2 shrink-0" data-i18n="btn.copy">
                 复制
               </button>
             </div>
           </div>
 
-          <p class="text-[10px] font-mono text-neutral-500">
+          <p class="text-[10px] font-mono text-neutral-500" data-i18n="dl.term_note">
             自动识别机型架构 · 部署至 /Applications · 自动注入全局 ⌥+S 热键
           </p>
         </div>
@@ -452,8 +458,97 @@
     </div>
   </footer>
 
-  <!-- Interactive State Engine -->
+  <!-- Interactive State Engine & Bilingual i18n System -->
   <script>
+    // i18n Translations Dictionary
+    const TRANSLATIONS = {
+      zh: {
+        'meta.title': 'Sirius · 外接大屏时，自动变暗 MacBook 屏幕',
+        'nav.download': '下载 v1.1.1',
+        'hero.tagline1': 'macOS 原生硬件调光',
+        'hero.tagline2': '免辅助功能权限',
+        'hero.headline': '外接大屏，副屏微光。<br><span class="italic font-light text-neutral-400">视线移回，瞬间点亮。</span>',
+        'hero.subtitle': '只点亮你正在聚焦的屏幕。离开 Mac 时自动将副屏降至物理微光底噪，光标划回瞬间 0 秒唤醒。<br class="hidden sm:inline">消除副屏刺眼反光，降低整机发热与功耗，守护 MacBook 屏幕寿命。',
+        'hero.cta': '免费下载 Sirius v1.1.1',
+        'hero.badge_free': '免费开源',
+        'sim.header_kicker': '真实双屏与设置联动演练场',
+        'sim.header_desc': '调节右侧设置窗口，左侧 MacBook 屏幕将实时应用并联动响应：',
+        'sim.ext_title': '外接大屏 · 27" 4K',
+        'sim.ext_status': '100% 全亮',
+        'sim.ext_active': '主工作区 (活跃)',
+        'sim.ext_power': '物理背光 100% 满载',
+        'sim.mb_notes': '副屏 · 备忘录',
+        'sim.tip': '提示：将鼠标在上方两块屏幕间移动，感受离开冷静缓冲与瞬间唤醒',
+        'hud.title': 'Sirius 控制中心',
+        'hud.floor_title': '微光底噪 (Ambient Floor)',
+        'hud.floor_scale': '<span>5% 极暗防窥</span><span class="text-neutral-400">12% 默认</span><span>30% 清晰可见</span>',
+        'hud.delay_title': '离开延时 (Cooldown)',
+        'feat1.kicker': '01. 真实硬件调光',
+        'feat1.title': '0 功耗，真降温',
+        'feat1.desc': '直接控制苹果屏幕物理背光供电芯片。拒绝市面上“覆盖黑色半透明窗口”的伪调光，真正关闭发光二极管，机身不发热，不伤电池。',
+        'feat2.kicker': '02. 智能防误触',
+        'feat2.title': '移开 3 秒缓释，划回秒亮',
+        'feat2.desc': '鼠标移出后提供 3 秒冷静期，避免路过边缘引发忽明忽暗；鼠标划回 Mac 时，0 秒等待瞬时补光，视线移到时屏幕已全亮。',
+        'feat3.kicker': '03. 极简与安全',
+        'feat3.title': '零权限，不常驻发热',
+        'feat3.desc': '不向系统索取敏感的“辅助功能”或“键盘监听”权限。内存占用仅 12MB，闲置 CPU 0.00%。随时支持 <code class="text-neutral-300 font-mono">⌥+S</code> 一键暂停。',
+        'dl.title': '免费获取 Sirius',
+        'dl.desc': '独立开源作品，无广告、无内购、无隐私追踪。支持全系 Apple Silicon (M1~M5) 及 Intel Mac。',
+        'dl.dmg_label': '标准安装包 (.dmg)',
+        'dl.gk_title': '首次打开提示“无法验证开发者”？',
+        'dl.gk_desc': '因未支付苹果年费，首次打开若被拦截，在终端粘贴此命令即可永久解除：',
+        'dl.term_label': '极客一行命令安装',
+        'dl.term_badge': '免隔离弹窗',
+        'dl.term_desc': '通过终端脚本安装的文件不会被系统添加隔离标记，装完直接秒开：',
+        'dl.term_note': '自动识别机型架构 · 部署至 /Applications · 自动注入全局 ⌥+S 热键',
+        'btn.copy': '复制'
+      },
+      en: {
+        'meta.title': 'Sirius · Native Dual-Display PWM Backlight Governor for Mac',
+        'nav.download': 'Download v1.1.1',
+        'hero.tagline1': 'macOS Native Hardware Dimming',
+        'hero.tagline2': 'Zero Accessibility Permission',
+        'hero.headline': 'External in focus, laptop in eclipse.<br><span class="italic font-light text-neutral-400">Move your gaze back, awaken in an instant.</span>',
+        'hero.subtitle': 'Illuminate only where your attention lives. Dips your built-in display to a quiet hardware ambient floor when using an external monitor, waking it in 0ms the moment your cursor returns.<br class="hidden sm:inline">Eliminate ambient glare, reduce heat and battery drain, and prolong display panel lifespan.',
+        'hero.cta': 'Download Sirius v1.1.1 Free',
+        'hero.badge_free': 'Free & Open Source',
+        'sim.header_kicker': 'Interactive Dual-Display & HUD Workbench',
+        'sim.header_desc': 'Adjust the settings on the right; the simulated MacBook display responds in real time:',
+        'sim.ext_title': 'External Display · 27" 4K',
+        'sim.ext_status': '100% Full Brightness',
+        'sim.ext_active': 'Primary Workspace (Active)',
+        'sim.ext_power': 'Physical Backlight at 100%',
+        'sim.mb_notes': 'Secondary Display · Notes',
+        'sim.tip': 'Tip: Move your cursor between the two displays above to experience anti-jitter cooldown and instant awake.',
+        'hud.title': 'Sirius Control Center',
+        'hud.floor_title': 'Ambient Floor',
+        'hud.floor_scale': '<span>5% Deep Eclipse</span><span class="text-neutral-400">12% Default</span><span>30% Soft & Clear</span>',
+        'hud.delay_title': 'Cooldown Delay',
+        'feat1.kicker': '01. Real Hardware Dimming',
+        'feat1.title': '0W Added Draw, Real Cooling',
+        'feat1.desc': 'Directly drives the internal display backlight chip via native APIs. Rejecting fake semi-transparent black overlays, Sirius actually turns down the LEDs—reducing chassis heat and saving battery life.',
+        'feat2.kicker': '02. Smart Anti-Jitter',
+        'feat2.title': '3s Soft Buffer, 0ms Instant Wake',
+        'feat2.desc': 'A 3-second calm buffer prevents flickering when your cursor casually brushes screen borders. The moment you move back to the Mac, it awakens instantaneously with zero wait.',
+        'feat3.kicker': '03. Lightweight & Secure',
+        'feat3.title': 'Zero Permissions, Whisper Quiet',
+        'feat3.desc': 'Never asks for sensitive Accessibility or Input Monitoring permissions. Operates at ~15MB RAM and 0.00% idle CPU. Toggle anytime with <code class="text-neutral-300 font-mono">⌥+S</code>.',
+        'dl.title': 'Get Sirius for Mac',
+        'dl.desc': 'Independent open source utility. No ads, no in-app purchases, no telemetry. Built for Apple Silicon (M1~M5) & Intel Mac.',
+        'dl.dmg_label': 'Standard Installer (.dmg)',
+        'dl.gk_title': 'Prompted with "Unidentified Developer"?',
+        'dl.gk_desc': 'As an open-source project without Apple enterprise cert, macOS Gatekeeper may show a warning. Run this in Terminal to clear it permanently:',
+        'dl.term_label': 'Geek One-Liner Install',
+        'dl.term_badge': 'Bypass Quarantine',
+        'dl.term_desc': 'Files installed via terminal script bypass macOS quarantine attributes and launch immediately:',
+        'dl.term_note': 'Auto-detects architecture · Deploys to /Applications · Configures global ⌥+S shortcut',
+        'btn.copy': 'Copy'
+      }
+    };
+
+    // Current active language
+    let currentLang = 'zh';
+
     // State Variables
     let currentAmbientFloor = 12; // 12%
     let currentCooldownDelay = 3.0; // 3.0 seconds
@@ -461,6 +556,8 @@
     let currentScreen = 'external'; // 'external' or 'macbook'
     let cooldownTimer = null;
     let cooldownInterval = null;
+    let currentReleaseTag = 'v1.1.1';
+    let currentReleaseSize = '2.4';
 
     // DOM Elements
     const mbScreen = document.getElementById('mb-screen');
@@ -481,11 +578,86 @@
     const cooldownBarContainer = document.getElementById('cooldown-bar-container');
     const cooldownBar = document.getElementById('cooldown-bar');
 
+    function switchLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('sirius_lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+      // Update switcher buttons
+      const btnZh = document.getElementById('lang-btn-zh');
+      const btnEn = document.getElementById('lang-btn-en');
+      if (lang === 'zh') {
+        btnZh.className = 'px-2 py-0.5 rounded transition text-white bg-white/10 font-medium';
+        btnEn.className = 'px-2 py-0.5 rounded transition text-neutral-400 hover:text-white font-medium';
+      } else {
+        btnZh.className = 'px-2 py-0.5 rounded transition text-neutral-400 hover:text-white font-medium';
+        btnEn.className = 'px-2 py-0.5 rounded transition text-white bg-white/10 font-medium';
+      }
+
+      // Update all data-i18n elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+          if (el.tagName === 'TITLE') {
+            document.title = TRANSLATIONS[lang][key];
+          } else {
+            el.innerHTML = TRANSLATIONS[lang][key];
+          }
+        }
+      });
+
+      // Update delay buttons
+      updateDelayButtonsText();
+
+      // Refresh dynamic simulator labels
+      if (isPaused) {
+        pauseText.textContent = lang === 'zh' ? '恢复调光引擎 (⌥S)' : 'Resume Dimming Engine (⌥S)';
+        topBadge.textContent = lang === 'zh' ? '❚❚ 状态：调光引擎已暂停（双屏保持 100% 全亮）' : '❚❚ Status: Dimming Engine Paused (Both Displays at 100%)';
+        mbCaption.textContent = lang === 'zh' ? '引擎已暂停 · 双屏保持常亮' : 'Engine Paused · Both Displays Active';
+      } else if (currentScreen === 'macbook') {
+        applyActiveState();
+      } else {
+        applyDimmedState();
+      }
+
+      // Update download buttons with current tag
+      updateDownloadButtonsUi();
+    }
+
+    function updateDelayButtonsText() {
+      document.querySelectorAll('.delay-btn').forEach(b => {
+        const delay = parseFloat(b.getAttribute('data-delay'));
+        if (currentLang === 'zh') {
+          if (delay === 1.0) b.textContent = '1 秒';
+          else if (delay === 3.0) b.textContent = '3 秒 (推)';
+          else if (delay === 5.0) b.textContent = '5 秒';
+        } else {
+          if (delay === 1.0) b.textContent = '1s';
+          else if (delay === 3.0) b.textContent = '3s (Rec)';
+          else if (delay === 5.0) b.textContent = '5s';
+        }
+      });
+    }
+
+    function updateDownloadButtonsUi() {
+      const primaryText = document.getElementById('primary-download-text');
+      if (primaryText) {
+        primaryText.textContent = currentLang === 'zh' ? `下载 Sirius ${currentReleaseTag}` : `Download Sirius ${currentReleaseTag}`;
+      }
+
+      const navBtn = document.querySelector('.download-nav-btn');
+      if (navBtn) {
+        navBtn.textContent = currentLang === 'zh' ? `下载 ${currentReleaseTag}` : `Download ${currentReleaseTag}`;
+      }
+
+      const heroText = document.querySelector('.download-hero-text');
+      if (heroText) {
+        heroText.textContent = currentLang === 'zh' ? `免费下载 Sirius ${currentReleaseTag}` : `Download Sirius ${currentReleaseTag} Free`;
+      }
+    }
+
     // Calculate visual CSS opacity and brightness from floor percentage (5% to 30%)
     function calcDimmedStyles(floorPct) {
-      // 5% -> op: 0.10, br: 0.18, contrast: 0.80 (deep night eclipse)
-      // 12% -> op: 0.35, br: 0.48, contrast: 0.92 (standard ambient)
-      // 30% -> op: 0.72, br: 0.82, contrast: 1.00 (clear soft ambient)
       const ratio = (floorPct - 5) / 25; // 0.0 to 1.0
       const opacity = (0.10 + ratio * 0.62).toFixed(2);
       const brightness = (0.18 + ratio * 0.64).toFixed(2);
@@ -511,15 +683,23 @@
 
       mbDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
       
-      let levelLabel = '微光';
-      if (currentAmbientFloor <= 8) levelLabel = '极暗防窥';
-      else if (currentAmbientFloor <= 15) levelLabel = '标准微光';
-      else levelLabel = '柔和明亮';
+      let levelLabelZh = '微光';
+      let levelLabelEn = 'Ambient';
+      if (currentAmbientFloor <= 8) {
+        levelLabelZh = '极暗防窥';
+        levelLabelEn = 'Deep Eclipse';
+      } else if (currentAmbientFloor <= 15) {
+        levelLabelZh = '标准微光';
+        levelLabelEn = 'Standard Ambient';
+      } else {
+        levelLabelZh = '柔和明亮';
+        levelLabelEn = 'Soft & Clear';
+      }
 
-      mbPct.textContent = `${currentAmbientFloor}% ${levelLabel}`;
+      const activeLabel = currentLang === 'zh' ? levelLabelZh : levelLabelEn;
+      mbPct.textContent = `${currentAmbientFloor}% ${activeLabel}`;
       mbPct.className = 'text-emerald-300 font-mono font-semibold';
       
-      // Wattage estimation: 0.05W at 5%, ~0.35W at 30%
       const estWatt = (0.05 + ((currentAmbientFloor - 5) / 25) * 0.30).toFixed(2);
       if (mbWattage) mbWattage.textContent = `${estWatt}W`;
 
@@ -529,19 +709,27 @@
       }
 
       if (isPreview) {
-        mbCaption.textContent = `实时微光调节 · ${currentAmbientFloor}% 物理背光`;
-        topBadge.textContent = `● 正在调节底噪：MacBook 实时呈现 ${currentAmbientFloor}% 硬件微光背光（${levelLabel}）`;
+        mbCaption.textContent = currentLang === 'zh' 
+          ? `实时微光调节 · ${currentAmbientFloor}% 物理背光` 
+          : `Live Tuning · ${currentAmbientFloor}% Hardware Backlight`;
+        topBadge.textContent = currentLang === 'zh'
+          ? `● 正在调节底噪：MacBook 实时呈现 ${currentAmbientFloor}% 硬件微光背光（${levelLabelZh}）`
+          : `● Tuning Floor: MacBook displaying ${currentAmbientFloor}% ambient backlight (${levelLabelEn})`;
         topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
       } else {
-        mbCaption.textContent = '微光潜航 · 硬件降温断电';
-        topBadge.textContent = `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%)`;
+        mbCaption.textContent = currentLang === 'zh' 
+          ? '微光潜航 · 硬件降温断电' 
+          : 'Ambient Floor · Hardware Cooled & Throttled';
+        topBadge.textContent = currentLang === 'zh'
+          ? `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%)`
+          : `● Status: Mac in Ambient Standby (${currentAmbientFloor}%)`;
         topBadge.className = 'px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium';
       }
 
       mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-white/10 transition-all duration-300';
       extFrame.className = 'p-2.5 rounded-xl bg-[#090A0C] border-2 border-sky-500/50 shadow-2xl transition-all duration-300';
 
-      hudBadge.textContent = 'SIRIUS B (微光)';
+      hudBadge.textContent = currentLang === 'zh' ? 'SIRIUS B (微光)' : 'SIRIUS B (DIMMED)';
       hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-bold';
 
       hideCooldownBar();
@@ -557,9 +745,9 @@
       mbFrame.style.boxShadow = '0 0 30px rgba(56, 189, 248, 0.20)';
 
       mbDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-400';
-      mbPct.textContent = '100% 全亮';
+      mbPct.textContent = currentLang === 'zh' ? '100% 全亮' : '100% Full';
       mbPct.className = 'text-sky-300 font-mono font-semibold';
-      mbCaption.textContent = '瞬间点亮 · 正在操作 Mac';
+      mbCaption.textContent = currentLang === 'zh' ? '瞬间点亮 · 正在操作 Mac' : 'Instant Awake · Operating on Mac';
 
       if (mbWattage) mbWattage.textContent = '4.50W';
       if (mbBacklightMeter) {
@@ -570,10 +758,12 @@
       mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-sky-500/50 shadow-2xl transition-all duration-300';
       extFrame.className = 'p-2.5 rounded-xl bg-[#090A0C] border-2 border-white/10 transition-all duration-300';
 
-      topBadge.textContent = '● 状态：光标在 Mac（0 秒瞬时唤醒）';
+      topBadge.textContent = currentLang === 'zh' 
+        ? '● 状态：光标在 Mac（0 秒瞬时唤醒）' 
+        : '● Status: Cursor on Mac (0ms Instant Awake)';
       topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
 
-      hudBadge.textContent = 'ACTIVE (全亮)';
+      hudBadge.textContent = currentLang === 'zh' ? 'ACTIVE (全亮)' : 'ACTIVE (100%)';
       hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/60 border border-sky-500/30 text-sky-300 font-bold';
     }
 
@@ -604,7 +794,6 @@
     }
 
     function handleHudEnter() {
-      // User is operating the HUD (main display work area)
       if (currentScreen === 'macbook') {
         currentScreen = 'external';
         startCooldownBuffer();
@@ -614,13 +803,17 @@
     function startCooldownBuffer() {
       clearCooldownTimers();
 
-      topBadge.textContent = `⏳ 冷静缓冲中：静待 ${currentCooldownDelay.toFixed(1)}s 防误触...`;
+      topBadge.textContent = currentLang === 'zh'
+        ? `⏳ 冷静缓冲中：静待 ${currentCooldownDelay.toFixed(1)}s 防误触...`
+        : `⏳ Anti-Jitter Cooldown: Waiting ${currentCooldownDelay.toFixed(1)}s...`;
       topBadge.className = 'px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium';
 
       hudBadge.textContent = `COOLDOWN (${currentCooldownDelay.toFixed(1)}s)`;
       hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300 font-bold';
 
-      mbCaption.textContent = `离开缓冲中 (${currentCooldownDelay.toFixed(1)}s)...`;
+      mbCaption.textContent = currentLang === 'zh' 
+        ? `离开缓冲中 (${currentCooldownDelay.toFixed(1)}s)...` 
+        : `Cooldown buffer (${currentCooldownDelay.toFixed(1)}s)...`;
 
       cooldownBarContainer.style.opacity = '1';
       cooldownBar.style.transition = `transform ${currentCooldownDelay}s linear`;
@@ -633,7 +826,9 @@
         const elapsed = Date.now() - startTime;
         const remain = Math.max(0, (totalMs - elapsed) / 1000);
         if (remain > 0) {
-          mbCaption.textContent = `离开缓冲中 (${remain.toFixed(1)}s)...`;
+          mbCaption.textContent = currentLang === 'zh'
+            ? `离开缓冲中 (${remain.toFixed(1)}s)...`
+            : `Cooldown buffer (${remain.toFixed(1)}s)...`;
         }
       }, 100);
 
@@ -646,29 +841,24 @@
       }, totalMs);
     }
 
-    // Interactive Lever 1: Ambient Floor Changed in HUD
     function handleAmbientFloorChange(val) {
       currentAmbientFloor = parseInt(val);
       hudFloorVal.textContent = `${currentAmbientFloor}%`;
 
-      // Cancel any pending countdown so user sees direct live preview
       clearCooldownTimers();
       hideCooldownBar();
 
-      // If paused, automatically resume so user can preview their setting
       if (isPaused) {
         isPaused = false;
         pauseIcon.textContent = '⏸';
-        pauseText.textContent = '快捷暂停调光 (⌥S)';
+        pauseText.textContent = currentLang === 'zh' ? '快捷暂停调光 (⌥S)' : 'Pause Dimming Engine (⌥S)';
         pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
       }
 
       currentScreen = 'external';
-      // Apply immediately with isPreview = true
       applyDimmedState(true);
     }
 
-    // Interactive Lever 2: Cooldown Delay Changed in HUD
     function setCooldown(seconds, btn) {
       currentCooldownDelay = seconds;
       hudDelayVal.textContent = `${seconds.toFixed(1)}s`;
@@ -678,11 +868,12 @@
       });
       btn.className = 'delay-btn active-delay py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-300 font-semibold transition';
 
-      topBadge.textContent = `● 已将离开防误触延时设为 ${seconds.toFixed(1)} 秒（移出 Mac 时触发缓冲）`;
+      topBadge.textContent = currentLang === 'zh'
+        ? `● 已将离开防误触延时设为 ${seconds.toFixed(1)} 秒（移出 Mac 时触发缓冲）`
+        : `● Anti-jitter delay set to ${seconds.toFixed(1)}s (triggers when leaving Mac)`;
       topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
     }
 
-    // Interactive Lever 3: Pause Toggle in HUD
     function togglePause() {
       isPaused = !isPaused;
       clearCooldownTimers();
@@ -695,27 +886,29 @@
         mbFrame.style.boxShadow = 'none';
 
         mbDot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400';
-        mbPct.textContent = '100% 全亮';
+        mbPct.textContent = currentLang === 'zh' ? '100% 全亮' : '100% Full';
         mbPct.className = 'text-rose-300 font-mono font-semibold';
-        mbCaption.textContent = '引擎已暂停 · 双屏保持常亮';
+        mbCaption.textContent = currentLang === 'zh' ? '引擎已暂停 · 双屏保持常亮' : 'Engine Paused · Both Displays Active';
         if (mbWattage) mbWattage.textContent = '4.50W';
         if (mbBacklightMeter) {
           mbBacklightMeter.style.width = '100%';
           mbBacklightMeter.className = 'h-full bg-rose-400 rounded-full transition-all duration-150';
         }
 
-        topBadge.textContent = '❚❚ 状态：调光引擎已暂停（双屏保持 100% 全亮）';
+        topBadge.textContent = currentLang === 'zh'
+          ? '❚❚ 状态：调光引擎已暂停（双屏保持 100% 全亮）'
+          : '❚❚ Status: Dimming Engine Paused (Both Displays at 100%)';
         topBadge.className = 'px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 font-medium';
 
         hudBadge.textContent = 'PAUSED';
         hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-rose-950/60 border border-rose-500/30 text-rose-300 font-bold';
 
         pauseIcon.textContent = '▶';
-        pauseText.textContent = '恢复调光引擎 (⌥S)';
+        pauseText.textContent = currentLang === 'zh' ? '恢复调光引擎 (⌥S)' : 'Resume Dimming Engine (⌥S)';
         pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-mono text-emerald-300 font-semibold transition flex items-center justify-center gap-2';
       } else {
         pauseIcon.textContent = '⏸';
-        pauseText.textContent = '快捷暂停调光 (⌥S)';
+        pauseText.textContent = currentLang === 'zh' ? '快捷暂停调光 (⌥S)' : 'Pause Dimming Engine (⌥S)';
         pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
         
         applyDimmedState();
@@ -724,11 +917,12 @@
 
     function copyCode(text) {
       navigator.clipboard.writeText(text).then(() => {
-        alert("已复制到剪贴板：\n" + text);
+        alert(currentLang === 'zh' ? ("已复制到剪贴板：\n" + text) : ("Copied to clipboard:\n" + text));
       }).catch(() => {
-        prompt("请手动复制：", text);
+        prompt(currentLang === 'zh' ? "请手动复制：" : "Copy manually:", text);
       });
     }
+
     // 动态同步 GitHub Releases 最新发布版本与下载直链
     (function syncLatestRelease() {
       const REPO = 'AlphaLeonX/yaology-sirius';
@@ -740,30 +934,40 @@
         .then(release => {
           if (!release || !release.assets) return;
           const tag = release.tag_name || 'v1.1.1';
+          currentReleaseTag = tag;
           const dmgAsset = release.assets.find(a => a.name.endsWith('.dmg') && !a.name.includes('latest')) || release.assets.find(a => a.name.endsWith('.dmg'));
           if (dmgAsset) {
             const sizeMB = (dmgAsset.size / (1024 * 1024)).toFixed(1);
+            currentReleaseSize = sizeMB;
             const downloadUrl = dmgAsset.browser_download_url;
 
             const primaryLink = document.getElementById('primary-dmg-link');
             if (primaryLink) primaryLink.href = downloadUrl;
 
-            const downloadText = document.getElementById('primary-download-text');
-            if (downloadText) downloadText.textContent = `下载 Sirius ${tag}`;
-
             const downloadMeta = document.getElementById('primary-download-meta');
             if (downloadMeta) downloadMeta.textContent = `(${sizeMB}MB · macOS 14+)`;
 
-            const navBtn = document.querySelector('.download-nav-btn');
-            if (navBtn) navBtn.textContent = `下载 ${tag}`;
-
-            const heroText = document.querySelector('.download-hero-text');
-            if (heroText) heroText.textContent = `免费下载 Sirius ${tag}`;
+            updateDownloadButtonsUi();
           }
         })
         .catch(err => {
           console.log('[Sirius] Using static fallback release link:', err);
         });
+    })();
+
+    // Initialize Language from localStorage or Browser Preference
+    (function initLanguage() {
+      const savedLang = localStorage.getItem('sirius_lang');
+      if (savedLang === 'en' || savedLang === 'zh') {
+        switchLanguage(savedLang);
+      } else {
+        const browserLang = navigator.language || navigator.userLanguage || 'zh';
+        if (browserLang.toLowerCase().startsWith('zh')) {
+          switchLanguage('zh');
+        } else {
+          switchLanguage('en');
+        }
+      }
     })();
 
     // Initial state: External active, MacBook dimmed at 12%

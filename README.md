@@ -1,104 +1,106 @@
 # Sirius
 
-> **外接显示器时，自动变暗 MacBook 屏幕的原生轻量工具。**  
-> 移开视线时深度暗淡降温省电，光标划回时瞬时唤醒，守护专注心流与屏幕寿命。
+> **Native, zero-permission Mac backlight governor that automatically dims your MacBook display when using external monitors.**  
+> Dim the noise. Protect your focus. Prolong hardware lifespan.
+
+**English** · [简体中文](README_CN.md)
 
 [![Release](https://img.shields.io/github/v/release/AlphaLeonX/yaology-sirius?style=flat-square&color=38bdf8)](https://github.com/AlphaLeonX/yaology-sirius/releases/latest)
 [![macOS](https://img.shields.io/badge/macOS-14.0%2B-black?style=flat-square&logo=apple)](https://github.com/AlphaLeonX/yaology-sirius)
 [![License](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](LICENSE)
 
-[🌐 访问官网 (sirius.yaology.com)](https://sirius.yaology.com) · [⬇️ 下载最新版](https://github.com/AlphaLeonX/yaology-sirius/releases/latest/download/Sirius-latest.dmg)
+[🌐 Official Website (sirius.yaology.com)](https://sirius.yaology.com) · [⬇️ Download Latest (.dmg)](https://github.com/AlphaLeonX/yaology-sirius/releases/latest/download/Sirius-latest.dmg)
 
 ---
 
-## 🎯 为什么需要 Sirius？解决什么痛点？
+## 🎯 Why Sirius? The Problem & Pain Points
 
-在使用 MacBook 外接大屏幕显示器办公或敲代码时，大部分人往往面临两难：
+When using a MacBook alongside an external monitor, most developers and creators face an annoying set of trade-offs:
 
-1. **双屏干扰视线**：主视野在外接大屏上，但旁边的 MacBook 屏幕依然全亮，余光频频受到色彩与动态画面干扰，难以长时间深度专注。
-2. **合盖（Clamshell）体验糟糕**：
-   - 失去了 MacBook 原生的顺滑触控板与 Touch ID 指纹解锁；
-   - 键盘区域的辅助散热通道被堵住，机身更容易发热降频。
-3. **不合盖又费电发热**：屏幕常亮白白消耗电池、增加被动散热压力，长时间高亮度还会加剧屏幕老化。
-4. **市面同类软件大多是“伪调光”**：市面上很多调光软件只是在屏幕上**盖了一层半透明黑色窗口**，屏幕背光依然 100% 全开，既不降温也不省电，还会干扰截图和色彩显示。
-
----
-
-## ✨ 核心特性与技术方案
-
-### 1. 真实硬件级背光调节 (Hardware PWM)
-Sirius 直接调用 macOS 显示器硬件接口控制内置屏幕的物理背光芯片：
-- **真降温、真省电**：屏幕背光从物理层降低至微光，机身显著降温，延长电池续航与屏幕背光寿命；
-- **不污染截图**：由于没有覆盖任何虚拟图层，截屏与色彩管理不受任何干扰。
-
-### 2. 毫秒级自适应光标感知
-- **划入即刻唤醒**：光标一旦移入 MacBook 屏幕，**0 秒等待、0.15 秒极速淡入**，眼睛看过去时亮度已完全恢复；
-- **划出防抖冷却**：光标移回外接大屏后，静默等待 3 秒（防误触抖动），确认离开后以 0.4 秒平滑渐隐变暗。
-
-### 3. 微光潜航底噪 (Ambient Floor)
-- 默认保持 12% 微光（支持 0%~30% 自由微调），避免彻底黑屏带来的“断连感”或死机误解；
-- 微信、飞书、邮件等通知弹窗依然保有辨识轮廓。
-
-### 4. 真正零权限要求 (Zero-Permission)
-- 采用原生系统级光标坐标检测与 Carbon 热键机制；
-- **无需向系统申请“辅助功能”、“屏幕录制”或“输入监视”等敏感隐私权限**；
-- 纯 Swift 原生打造，常驻内存仅 ~15MB，CPU 占用日常趋近 0.00%。
-
-### 5. 灵活的快捷操作
-- **全局热键**：按下 `⌥ + S`（Option + S）随时快速切换调光 / 恢复常亮；
-- **定时暂停**：支持一键“暂停 30 分钟 / 1 小时”，开会或展示时无需临时退出软件。
+1. **Dual-Screen Distraction**: Your primary visual focus is on the large monitor, but the adjacent MacBook screen sits at full brightness. Its glare and motion constantly intrude on your peripheral vision, fragmenting deep focus.
+2. **Clamshell Mode Frustrations**:
+   - Closing the lid sacrifices the MacBook's native trackpad, keyboard, and Touch ID;
+   - The keyboard area acts as an essential passive thermal exhaust—closing the lid traps heat and accelerates fan noise or CPU throttling under sustained load.
+3. **Open-Lid Heat & Battery Drain**: Keeping the built-in screen at 100% brightness needlessly drains battery power, increases chassis temperatures, and wears down the backlight array.
+4. **The Flaw of "Dimming" Apps (Fake Overlays)**: Most existing dimming apps merely draw a semi-transparent black overlay window (`NSWindow`). The physical Mini-LED / LCD backlight remains 100% powered on—providing **zero thermal relief, zero power reduction**, and corrupting system screenshots and color accuracy.
 
 ---
 
-## ⬇️ 下载与安装
+## ✨ Key Features & Technical Highlights
 
-### 方式一：直接下载安装包 (.dmg)
-前往 [Releases 页面](https://github.com/AlphaLeonX/yaology-sirius/releases/latest) 下载最新的 `Sirius-latest.dmg`，双击后拖入 `Applications` 目录即可。
+### 1. Hardware PWM Backlight Governor
+Sirius communicates directly with macOS display hardware controllers (`DisplayServices`) to dial down the physical backlight:
+- **True Cooling & Battery Savings**: Turns down the actual LEDs from the hardware layer, keeping your Mac cool and preserving battery health;
+- **Zero Screenshot Interference**: No virtual overlay windows are drawn—your screenshots and macOS color management stay pixel-perfect.
 
-> **首次打开提示“无法验证开发者”？**  
-> 因个人开源作品未购买苹果开发者年费证书，macOS Gatekeeper 可能会弹出拦截提示。只需在终端执行以下命令即可永久解除：
+### 2. Sub-Millisecond Cursor Sensing
+- **Instant Wake (0ms)**: The millisecond your cursor crosses back onto your MacBook screen, brightness smoothly eases in within 0.15s. By the time your eyes shift focus, the screen is already fully restored;
+- **Anti-Jitter Cooldown**: Moving your cursor back to your external monitor initiates a 3.0s grace period (configurable), preventing annoying flicker from accidental edge brushes, before smoothly easing down in 0.4s.
+
+### 3. Ambient Floor
+- Defaults to a comfortable 12% ambient glow (customizable from 0% to 30%), preventing the jarring disorientation of an abrupt pitch-black void;
+- Slack, WeChat, and system notification banners remain readable at a glance.
+
+### 4. Zero Permissions Required (Zero-Permission)
+- Built entirely with native Cocoa APIs (`NSEvent.mouseLocation` and Carbon hotkeys);
+- **Never asks for sensitive Accessibility, Screen Recording, or Input Monitoring permissions**;
+- Pure Swift + AppKit: ~15MB RAM footprint, virtually 0.00% idle CPU usage.
+
+### 5. Seamless Shortcuts & Controls
+- **Global Hotkey**: Press `⌥ + S` (Option + S) at any time to toggle dimming on/off;
+- **Timed Pauses**: One-click "Pause for 30m / 1h" during meetings or screen-sharing presentations.
+
+---
+
+## ⬇️ Download & Installation
+
+### Option 1: Direct DMG Download
+Download the latest `Sirius-latest.dmg` from the [Releases page](https://github.com/AlphaLeonX/yaology-sirius/releases/latest), open it, and drag Sirius into your `Applications` folder.
+
+> **Prompted with "Unidentified Developer"?**  
+> Because this open-source project does not carry a paid Apple enterprise signing certificate, macOS Gatekeeper may present a security prompt on first launch. Run this one-liner in Terminal to permanently clear it:
 > ```bash
 > xattr -cr /Applications/Sirius.app
 > ```
 
-### 方式二：终端一键安装
+### Option 2: Terminal One-Liner Install
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AlphaLeonX/yaology-sirius/main/scripts/install.sh | bash
 ```
 
 ---
 
-## 🛠️ 从源码编译 (可选)
+## 🛠️ Building from Source (Optional)
 
-本项目无任何第三方臃肿依赖，可直接使用系统原生 Swift 编译器构建：
+Sirius is built with zero third-party dependencies using the standard macOS Swift toolchain:
 
 ```bash
-# 1. 克隆仓库
+# 1. Clone the repository
 git clone https://github.com/AlphaLeonX/yaology-sirius.git
 cd yaology-sirius
 
-# 2. 本地直接运行调试
+# 2. Run locally in debug mode
 make run
 
-# 3. 构建为标准 macOS 应用程序 (.app)
+# 3. Build standalone macOS application (.app)
 make app
 ```
 
 ---
 
-## ❓ 常见问题 (FAQ)
+## ❓ FAQ
 
-**Q：为什么外接单屏时 Sirius 默认不生效？**  
-A：Sirius 是专为“双屏工作流”设计的护眼专注工具。仅在系统检测到连接了外接显示器且内建屏幕展开时才会自动激活调度；未外接屏幕时，MacBook 保持正常原生亮度模式。
+**Q: Why does Sirius only activate when an external display is connected?**  
+A: Sirius is purpose-built for dual-display workflows. It engages only when an external display is active and the MacBook screen is open. When running standalone on your laptop, your MacBook retains standard macOS brightness controls.
 
-**Q：微光底噪设置为 0% 会发生什么？**  
-A：底噪滑块拉到 0% 时，离开 MacBook 屏幕后物理背光将完全熄灭（达到彻底全黑）；若需要保留屏幕轮廓与后台窗口提示，推荐保持默认的 10%~15%。
+**Q: What happens if I set the Ambient Floor to 0%?**  
+A: At 0%, the internal backlight completely powers off (true pitch black) when you shift away. If you wish to keep notification badges and window outlines visible, we recommend keeping the default 10%~15%.
 
-**Q：为什么不需要任何系统辅助功能权限？**  
-A：Sirius 仅利用系统公有事件机制获取当前鼠标在全局屏幕绝对坐标系下的位置，判断光标是否落在内置屏幕矩形范围之内，不监听任何键盘按键内容，也不读取任何屏幕像素，因此无需索取高危系统权限。
+**Q: Why doesn't Sirius require Accessibility permissions?**  
+A: Sirius only queries the global cursor coordinates using public macOS mouse APIs to check whether the cursor lies within the MacBook's screen bounds. It does not monitor keystrokes, capture pixels, or intercept system events.
 
 ---
 
-## 📄 开源协议
+## 📄 License
 
-本项目采用 [MIT 许可证](LICENSE) 开源。无广告、无内购、无任何网络追踪上报。
+Distributed under the [MIT License](LICENSE). Free of charge, no ads, no in-app purchases, zero telemetry.
