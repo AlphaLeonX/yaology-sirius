@@ -12,13 +12,15 @@ public struct SettingsView: View {
 
     public enum SettingsTab: String, CaseIterable, Identifiable {
         case dimming
+        case labs
         case general
 
         public var id: String { rawValue }
 
         public var title: String {
             switch self {
-            case .dimming: return loc("调光与护眼", "Dimming & Eye Care")
+            case .dimming: return loc("双星调光", "Dual-Star Dimming")
+            case .labs: return loc("实验室特性", "Labs & Experimental")
             case .general: return loc("快捷键与通用", "Shortcuts & General")
             }
         }
@@ -26,6 +28,7 @@ public struct SettingsView: View {
         public var iconName: String {
             switch self {
             case .dimming: return "sun.max"
+            case .labs: return "flask"
             case .general: return "gearshape"
             }
         }
@@ -70,6 +73,8 @@ public struct SettingsView: View {
                     switch selectedTab {
                     case .dimming:
                         dimmingSection
+                    case .labs:
+                        labsSection
                     case .general:
                         generalSection
                     }
@@ -77,7 +82,7 @@ public struct SettingsView: View {
                 .padding(20)
             }
         }
-        .frame(width: 480, height: 350)
+        .frame(width: 500, height: 380)
         .background(Color(nsColor: .windowBackgroundColor))
         .onDisappear {
             stopRecording()
@@ -254,20 +259,37 @@ public struct SettingsView: View {
             .cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.06), lineWidth: 1))
 
-            // 4. 琥珀微光与护眼 (Amber Ambient)
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    HStack(spacing: 6) {
+        }
+    }
+
+    // MARK: - 实验室特性 (Labs & Experimental)
+
+    private var labsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 琥珀微光实验特性卡片
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    HStack(spacing: 8) {
                         Image(systemName: "flame.fill")
-                            .font(.system(size: 13))
+                            .font(.system(size: 15))
                             .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(loc("琥珀微光 (待机低蓝光护眼)", "Amber Ambient (Eye Care)"))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.primary)
-                            Text(loc("MacBook 在待机变暗时同步调低蓝光输出，模拟温润烛光，消除余光视觉刺激。", "Reduces blue light when dimmed, emitting a warm amber glow to ease eye strain."))
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(spacing: 6) {
+                                Text(loc("琥珀微光 (待机低蓝光护眼)", "Amber Ambient (Eye Care)"))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.primary)
+                                Text(loc("实验特性", "Experimental"))
+                                    .font(.system(size: 9.5, weight: .bold))
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1.5)
+                                    .background(Color(red: 0.98, green: 0.65, blue: 0.22).opacity(0.18))
+                                    .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                                    .cornerRadius(4)
+                            }
+                            Text(loc("仅在光标处于外接主屏、MacBook 屏幕变暗待机时降低蓝光并转入柔和暖光；光标划回时毫秒级无缝还原标准纯净自然色，确保正常工作色彩准确。", "Reduces blue light into warm amber only while dimmed in background; instantly restores native clean white when active."))
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     Spacer()
@@ -284,7 +306,7 @@ public struct SettingsView: View {
                     // 色温滑块
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text(loc("暖光色温", "Color Temperature"))
+                            Text(loc("待机暖光色温", "Standby Warmth Temperature"))
                                 .font(.system(size: 12, weight: .medium))
                             Spacer()
                             Text("\(Int(preferences.amberTemperatureK))K")
@@ -338,23 +360,56 @@ public struct SettingsView: View {
                             .foregroundColor(abs(preferences.amberTemperatureK - 4500) < 50 ? Color(red: 0.98, green: 0.65, blue: 0.22) : .secondary)
                         }
                     }
+                }
 
-                    Divider().opacity(0.15)
+                Divider().opacity(0.15)
 
-                    // 唤醒行为子选项
-                    VStack(alignment: .leading, spacing: 4) {
-                        Toggle(isOn: $preferences.amberRestoreOnWake) {
-                            Text(loc("光标划回唤醒时还原自然色彩", "Restore natural color when waking up"))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.primary)
-                        }
-                        .toggleStyle(.checkbox)
-
-                        Text(loc("默认不勾选：划回 Mac 唤醒后继续保持舒适护眼暖光，避免夜间被骤亮白光刺眼。如需作图校色，可勾选此项以在唤醒时即刻还原标准自然色。", "Default off: keeps eye-care warmth when active. Turn on if you need accurate color grading upon waking."))
+                // 专业用户须知与注意事项
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 10.5))
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 18)
+                            .foregroundColor(.orange)
+                        Text(loc("使用须知与色彩环境说明", "Notice & Color Environment"))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.primary)
                     }
+
+                    Text(loc("• 本特性通过底层 CoreGraphics 硬件查找表 (Gamma LUT) 实现单屏隔离，适合夜间防疲劳与暗光码字。\n• 对色彩高度敏感的设计、摄影、修图与影像创作者，建议保持关闭。\n• 若系统开启了「原彩显示 (True Tone)」或全局「夜览 (Night Shift)」，可能会与待机暖光产生环境光动态叠加。",
+                             "• This feature adjusts the hardware Gamma LUT for built-in screen isolation, ideal for night coding and reading.\n• Professional designers and photo/video editors are recommended to keep this disabled for absolute color accuracy.\n• If macOS True Tone or Night Shift is enabled, they may dynamically interact with standby warmth."))
+                        .font(.system(size: 10.5))
+                        .foregroundColor(.secondary)
+                        .lineSpacing(3)
+                }
+
+                Divider().opacity(0.15)
+
+                // 容灾与应急重置按钮
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(loc("屏幕色彩自愈重置", "Emergency Color Reset"))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary)
+                        Text(loc("若遇到系统色彩异常或偏色残留，点击即可立刻复原出厂色彩配置文件与查找表。", "Instantly restore standard factory ColorSync profile and identity Gamma table if any skew occurs."))
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button(action: {
+                        ColorTemperatureEngine.shared.emergencyReset()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text(loc("立即复原色彩", "Reset Color"))
+                        }
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                        .cornerRadius(5)
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.primary.opacity(0.15), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(14)

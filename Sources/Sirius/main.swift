@@ -49,9 +49,22 @@ if CommandLine.arguments.contains("--check") || CommandLine.arguments.contains("
     exit(0)
 }
 
+// MARK: - CLI 应急复原色彩 (--reset-color)
+if CommandLine.arguments.contains("--reset-color") {
+    print("[Sirius] 正在执行内建显示器色彩应急复原与 ColorSync 重置...")
+    ColorTemperatureEngine.shared.emergencyReset()
+    print("[Sirius] 屏幕原生色彩与硬件 LUT 表已完全复原。")
+    exit(0)
+}
+
 // MARK: - 应用主代理
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 启动自愈：若未开启实验室微光，自愈复原任何异常偏色残留
+        if !SiriusPreferences.shared.amberAmbientEnabled {
+            ColorTemperatureEngine.shared.forceRestoreNative()
+        }
+
         // 根据用户偏好设置激活策略（默认显示在 Dock 栏）
         SiriusPreferences.shared.updateActivationPolicy()
 

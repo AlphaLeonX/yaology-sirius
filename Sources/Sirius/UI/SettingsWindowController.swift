@@ -22,7 +22,7 @@ public final class SettingsWindowController: NSObject, NSWindowDelegate {
         let hostingController = NSHostingController(rootView: settingsView)
 
         let win = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 380),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 420),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false

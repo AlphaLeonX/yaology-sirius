@@ -257,6 +257,35 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
         print("[Sirius] ColorEngine: Builtin screen color completely restored to native state.")
     }
 
+    /// 紧急复原内建屏幕色彩并重置系统 ColorSync（供用户一键排障与容灾自愈）
+    public func emergencyReset() {
+        lock.lock()
+        animationTimer?.cancel()
+        animationTimer = nil
+        baselineRed.removeAll()
+        baselineGreen.removeAll()
+        baselineBlue.removeAll()
+        sampleCount = 0
+        isCurrentlyWarm = false
+        currentWarmthProgress = 0.0
+        lock.unlock()
+
+        if let displayID = DisplayBridge.getBuiltinDisplayID() {
+            let capacity: UInt32 = 256
+            var linear = [CGGammaValue](repeating: 0, count: Int(capacity))
+            for i in 0..<Int(capacity) {
+                linear[i] = CGGammaValue(i) / CGGammaValue(capacity - 1)
+            }
+            CGSetDisplayTransferByTable(displayID, capacity, linear, linear, linear)
+        }
+        CGDisplayRestoreColorSyncSettings()
+
+        disableSystemWideNightShiftIfAny()
+        captureBaseline()
+
+        print("[Sirius] ColorEngine: Emergency reset performed. Display color restored to standard factory profile.")
+    }
+
     // MARK: - 内部私有方法
 
     private func forceRestoreNativeSync(displayID: CGDirectDisplayID? = nil) {
