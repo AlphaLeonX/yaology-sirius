@@ -720,7 +720,8 @@
         pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
       }
 
-      if (currentScreen === 'macbook') {
+      if (currentScreen === 'macbook' || cooldownTimer !== null) {
+        currentScreen = 'macbook';
         applyActiveState();
       } else {
         applyDimmedState();
@@ -736,7 +737,10 @@
         pauseText.textContent = currentLang === 'zh' ? '快捷暂停调光 (⌥S)' : 'Pause Dimming Engine (⌥S)';
         pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
       }
-      if (currentScreen !== 'macbook') {
+      if (currentScreen === 'macbook' || cooldownTimer !== null) {
+        currentScreen = 'macbook';
+        applyActiveState();
+      } else {
         applyDimmedState(false);
       }
     }
@@ -854,32 +858,64 @@
       hideCooldownBar();
 
       mbScreen.style.opacity = '1.0';
-      mbScreen.style.filter = 'brightness(1.0) contrast(1.0)';
-      mbScreen.style.boxShadow = '0 0 25px rgba(56, 189, 248, 0.25)';
-      mbScreen.style.background = 'radial-gradient(ellipse at 50% 10%, #1e293b 0%, #0f172a 65%, #050811 100%)';
-      mbFrame.style.boxShadow = '0 0 30px rgba(56, 189, 248, 0.20)';
 
-      mbDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-400';
-      mbPct.textContent = currentLang === 'zh' ? '100% 全亮' : '100% Full';
-      mbPct.className = 'text-sky-300 font-mono font-semibold';
-      mbCaption.textContent = currentLang === 'zh' ? '瞬间点亮 · 正在操作 Mac' : 'Instant Awake · Operating on Mac';
+      if (isAmberEnabled) {
+        const warmthRatio = (5500 - amberKelvin) / 3000; // 0.0 ~ 1.0
+        const sepia = (0.35 + warmthRatio * 0.40).toFixed(2);
+        mbScreen.style.filter = `brightness(1.0) contrast(1.0) sepia(${sepia}) hue-rotate(-20deg)`;
+        mbScreen.style.background = 'radial-gradient(ellipse at 50% 10%, #2e1c10 0%, #170d06 65%, #080301 100%)';
+        mbScreen.style.boxShadow = '0 0 25px rgba(245, 158, 11, 0.35)';
+        mbFrame.style.boxShadow = '0 0 30px rgba(245, 158, 11, 0.25)';
 
-      if (mbWattage) mbWattage.textContent = '4.50W';
-      if (mbBacklightMeter) {
-        mbBacklightMeter.style.width = '100%';
-        mbBacklightMeter.className = 'h-full bg-sky-400 rounded-full transition-all duration-150';
+        mbDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]';
+        mbPct.textContent = currentLang === 'zh' ? `100% 全亮 (琥珀 ${amberKelvin}K)` : `100% Full (Amber ${amberKelvin}K)`;
+        mbPct.className = 'text-amber-300 font-mono font-semibold';
+        mbCaption.textContent = currentLang === 'zh' ? '瞬间点亮 · 保持低蓝光护眼' : 'Instant Awake · Low Blue Light Protected';
+
+        if (mbWattage) mbWattage.textContent = '4.50W';
+        if (mbBacklightMeter) {
+          mbBacklightMeter.style.width = '100%';
+          mbBacklightMeter.className = 'h-full bg-amber-400 rounded-full transition-all duration-150';
+        }
+
+        topBadge.textContent = currentLang === 'zh' 
+          ? `● 状态：光标在 Mac（100% 满亮 · 琥珀护眼 ${amberKelvin}K）` 
+          : `● Status: Cursor on Mac (100% Full · Amber ${amberKelvin}K)`;
+        topBadge.className = 'px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium';
+
+        hudBadge.textContent = currentLang === 'zh' ? 'ACTIVE (琥珀全亮)' : 'ACTIVE (AMBER 100%)';
+        hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300 font-bold';
+
+        mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-amber-500/60 shadow-2xl transition-all duration-300';
+      } else {
+        mbScreen.style.filter = 'brightness(1.0) contrast(1.0)';
+        mbScreen.style.background = 'radial-gradient(ellipse at 50% 10%, #1e293b 0%, #0f172a 65%, #050811 100%)';
+        mbScreen.style.boxShadow = '0 0 25px rgba(56, 189, 248, 0.25)';
+        mbFrame.style.boxShadow = '0 0 30px rgba(56, 189, 248, 0.20)';
+
+        mbDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-400';
+        mbPct.textContent = currentLang === 'zh' ? '100% 全亮' : '100% Full';
+        mbPct.className = 'text-sky-300 font-mono font-semibold';
+        mbCaption.textContent = currentLang === 'zh' ? '瞬间点亮 · 正在操作 Mac' : 'Instant Awake · Operating on Mac';
+
+        if (mbWattage) mbWattage.textContent = '4.50W';
+        if (mbBacklightMeter) {
+          mbBacklightMeter.style.width = '100%';
+          mbBacklightMeter.className = 'h-full bg-sky-400 rounded-full transition-all duration-150';
+        }
+
+        topBadge.textContent = currentLang === 'zh' 
+          ? '● 状态：光标在 Mac（0 秒瞬时唤醒）' 
+          : '● Status: Cursor on Mac (0ms Instant Awake)';
+        topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
+
+        hudBadge.textContent = currentLang === 'zh' ? 'ACTIVE (全亮)' : 'ACTIVE (100%)';
+        hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/60 border border-sky-500/30 text-sky-300 font-bold';
+
+        mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-sky-500/50 shadow-2xl transition-all duration-300';
       }
 
-      mbFrame.className = 'p-2 rounded-xl bg-[#090A0C] border-2 border-sky-500/50 shadow-2xl transition-all duration-300';
       extFrame.className = 'p-2.5 rounded-xl bg-[#090A0C] border-2 border-white/10 transition-all duration-300';
-
-      topBadge.textContent = currentLang === 'zh' 
-        ? '● 状态：光标在 Mac（0 秒瞬时唤醒）' 
-        : '● Status: Cursor on Mac (0ms Instant Awake)';
-      topBadge.className = 'px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 text-sky-300 font-medium';
-
-      hudBadge.textContent = currentLang === 'zh' ? 'ACTIVE (全亮)' : 'ACTIVE (100%)';
-      hudBadge.className = 'text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/60 border border-sky-500/30 text-sky-300 font-bold';
     }
 
     function clearCooldownTimers() {
@@ -950,6 +986,7 @@
       cooldownTimer = setTimeout(() => {
         clearInterval(cooldownInterval);
         cooldownInterval = null;
+        cooldownTimer = null;
         if (currentScreen === 'external' && !isPaused) {
           applyDimmedState();
         }
