@@ -52,6 +52,7 @@ if CommandLine.arguments.contains("--check") || CommandLine.arguments.contains("
 // MARK: - CLI 应急复原色彩 (--reset-color)
 if CommandLine.arguments.contains("--reset-color") {
     print("[Sirius] 正在执行内建显示器色彩应急复原与 ColorSync 重置...")
+    SiriusPreferences.shared.amberAmbientEnabled = false
     ColorTemperatureEngine.shared.emergencyReset()
     print("[Sirius] 屏幕原生色彩与硬件 LUT 表已完全复原。")
     exit(0)

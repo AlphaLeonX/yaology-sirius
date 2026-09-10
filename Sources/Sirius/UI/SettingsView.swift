@@ -396,6 +396,9 @@ public struct SettingsView: View {
                     }
                     Spacer()
                     Button(action: {
+                        withAnimation {
+                            preferences.amberAmbientEnabled = false
+                        }
                         ColorTemperatureEngine.shared.emergencyReset()
                     }) {
                         HStack(spacing: 4) {
