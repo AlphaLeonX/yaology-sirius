@@ -320,12 +320,12 @@
 
           <!-- Control: Amber Ambient Toggle & Slider (New in v1.2) -->
           <div class="space-y-2 pt-2 border-t border-white/[0.04]">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between cursor-pointer select-none group py-0.5" onclick="toggleAmberAmbient()" role="button" aria-label="Toggle Amber Ambient">
               <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                <span class="text-xs font-mono text-neutral-300" data-i18n="hud.amber_title">琥珀微光 (低蓝光护眼)</span>
+                <span id="amber-indicator-dot" class="w-2 h-2 rounded-full bg-neutral-600 transition-colors"></span>
+                <span class="text-xs font-mono text-neutral-300 group-hover:text-white transition" data-i18n="hud.amber_title">琥珀微光 (低蓝光护眼)</span>
               </div>
-              <button id="amber-toggle-btn" onclick="toggleAmberAmbient()" class="px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 hover:text-white">
+              <button id="amber-toggle-btn" type="button" class="pointer-events-none px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 group-hover:text-white">
                 OFF
               </button>
             </div>
@@ -342,7 +342,7 @@
                 max="5500" 
                 value="3200" 
                 step="100" 
-                class="w-full cursor-pointer"
+                class="w-full cursor-pointer accent-amber-400"
                 oninput="handleAmberTempChange(this.value)"
               />
               <div class="flex justify-between text-[9px] font-mono text-neutral-500" data-i18n="hud.amber_scale">
@@ -594,7 +594,7 @@
     let currentAmbientFloor = 12; // 12%
     let currentCooldownDelay = 3.0; // 3.0 seconds
     let isPaused = false;
-    let isAmberAmbient = false;
+    let isAmberEnabled = false;
     let amberKelvin = 3200;
     let currentScreen = 'external'; // 'external' or 'macbook'
     let cooldownTimer = null;
@@ -700,14 +700,24 @@
     // Toggle Amber Ambient
     function toggleAmberAmbient() {
       isAmberEnabled = !isAmberEnabled;
+      const dot = document.getElementById('amber-indicator-dot');
       if (isAmberEnabled) {
-        amberToggleBtn.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold transition bg-amber-500/20 border border-amber-500/40 text-amber-300';
+        amberToggleBtn.className = 'pointer-events-none px-2 py-0.5 rounded text-[10px] font-mono font-bold transition bg-amber-500/20 border border-amber-500/40 text-amber-300';
         amberToggleBtn.textContent = 'ON';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400 transition-colors shadow-[0_0_8px_rgba(245,158,11,0.6)]';
         amberSliderContainer.classList.remove('hidden');
       } else {
-        amberToggleBtn.className = 'px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 hover:text-white';
+        amberToggleBtn.className = 'pointer-events-none px-2 py-0.5 rounded text-[10px] font-mono transition bg-white/[0.05] border border-white/[0.1] text-neutral-400 group-hover:text-white';
         amberToggleBtn.textContent = 'OFF';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-neutral-600 transition-colors';
         amberSliderContainer.classList.add('hidden');
+      }
+
+      if (isPaused) {
+        isPaused = false;
+        pauseIcon.textContent = '⏸';
+        pauseText.textContent = currentLang === 'zh' ? '快捷暂停调光 (⌥S)' : 'Pause Dimming Engine (⌥S)';
+        pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
       }
 
       if (currentScreen === 'macbook') {
@@ -720,8 +730,14 @@
     function handleAmberTempChange(val) {
       amberKelvin = parseInt(val);
       amberKelvinVal.textContent = `${amberKelvin}K`;
+      if (isPaused) {
+        isPaused = false;
+        pauseIcon.textContent = '⏸';
+        pauseText.textContent = currentLang === 'zh' ? '快捷暂停调光 (⌥S)' : 'Pause Dimming Engine (⌥S)';
+        pauseToggleBtn.className = 'w-full py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-mono text-neutral-200 transition flex items-center justify-center gap-2';
+      }
       if (currentScreen !== 'macbook') {
-        applyDimmedState(true);
+        applyDimmedState(false);
       }
     }
 
@@ -815,8 +831,8 @@
           ? (isAmberEnabled ? '琥珀微光 · 护眼低蓝光' : '微光潜航 · 硬件降温断电')
           : (isAmberEnabled ? 'Amber Ambient · Low Blue Light' : 'Ambient Floor · Hardware Cooled & Throttled');
         topBadge.textContent = currentLang === 'zh'
-          ? `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%${isAmberEnabled ? ' · 琥珀护眼' : ''})`
-          : `● Status: Mac in Ambient Standby (${currentAmbientFloor}%${isAmberEnabled ? ' · Amber' : ''})`;
+          ? `● 状态：Mac 处于微光待机 (${currentAmbientFloor}%${isAmberEnabled ? ` · 琥珀护眼 ${amberKelvin}K` : ''})`
+          : `● Status: Mac in Ambient Standby (${currentAmbientFloor}%${isAmberEnabled ? ` · Amber ${amberKelvin}K` : ''})`;
         topBadge.className = isAmberEnabled 
           ? 'px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-medium'
           : 'px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium';
