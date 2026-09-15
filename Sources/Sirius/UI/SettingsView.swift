@@ -24,14 +24,6 @@ public struct SettingsView: View {
             case .general: return loc("快捷键与通用", "Shortcuts & General")
             }
         }
-
-        public var iconName: String {
-            switch self {
-            case .dimming: return "sun.max"
-            case .labs: return "flask"
-            case .general: return "gearshape"
-            }
-        }
     }
 
     public init() {}
@@ -45,19 +37,15 @@ public struct SettingsView: View {
                         stopRecording()
                         selectedTab = tab
                     }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: tab.iconName)
-                                .font(.system(size: 11))
-                            Text(tab.title)
-                                .font(.system(size: 12, weight: selectedTab == tab ? .semibold : .regular))
-                                .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(selectedTab == tab ? Color.accentColor.opacity(0.15) : Color.clear)
-                        .foregroundColor(selectedTab == tab ? .accentColor : .secondary)
-                        .cornerRadius(6)
+                        Text(tab.title)
+                            .font(.system(size: 12, weight: selectedTab == tab ? .semibold : .regular))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(selectedTab == tab ? Color.accentColor.opacity(0.15) : Color.clear)
+                            .foregroundColor(selectedTab == tab ? .accentColor : .secondary)
+                            .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
                 }
@@ -271,31 +259,29 @@ public struct SettingsView: View {
             // 琥珀微光实验特性卡片
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 15))
-                            .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack(spacing: 6) {
-                                Text(loc("琥珀微光 (待机低蓝光护眼)", "Amber Ambient (Eye Care)"))
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.primary)
-                                Text(loc("实验特性", "Experimental"))
-                                    .font(.system(size: 9.5, weight: .bold))
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 1.5)
-                                    .background(Color(red: 0.98, green: 0.65, blue: 0.22).opacity(0.18))
-                                    .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
-                                    .cornerRadius(4)
-                            }
-                            Text(loc("仅在光标处于外接主屏、MacBook 屏幕变暗待机时降低蓝光并转入柔和暖光；光标划回时毫秒级无缝还原标准纯净自然色，确保正常工作色彩准确。", "Reduces blue light into warm amber only while dimmed in background; instantly restores native clean white when active."))
-                                .font(.system(size: 11))
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 6) {
+                            Text(loc("琥珀微光 (待机低蓝光护眼)", "Amber Ambient (Eye Care)"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.primary)
+                            Text(loc("实验特性", "Experimental"))
+                                .font(.system(size: 9.5, weight: .semibold))
+                                .tracking(0.2)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1.5)
+                                .background(Color.primary.opacity(0.06))
                                 .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                                .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.primary.opacity(0.08), lineWidth: 1))
+                                .cornerRadius(3)
                         }
+                        Text(loc("仅在光标处于外接主屏、MacBook 屏幕变暗待机时降低蓝光并转入柔和暖光；光标划回时毫秒级无缝还原标准纯净自然色，确保正常工作色彩准确。", "Reduces blue light into warm amber only while dimmed in background; instantly restores native clean white when active."))
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    Spacer()
+                    Spacer(minLength: 12)
                     Toggle("", isOn: $preferences.amberAmbientEnabled)
+                        .labelsHidden()
                         .toggleStyle(.switch)
                         .onChange(of: preferences.amberAmbientEnabled) { _, enabled in
                             SiriusStateMachine.shared.handleAmberAmbientToggled(enabled: enabled)
@@ -371,17 +357,12 @@ public struct SettingsView: View {
 
                 // 专业用户须知与注意事项
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10.5))
-                            .foregroundColor(.orange)
-                        Text(loc("使用须知与色彩环境说明", "Notice & Color Environment"))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.primary)
-                    }
+                    Text(loc("使用须知与色彩环境说明", "Notice & Color Environment"))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.primary)
 
-                    Text(loc("• 本特性通过底层 CoreGraphics 硬件查找表 (Gamma LUT) 实现单屏隔离，适合夜间防疲劳与暗光码字。\n• 对色彩高度敏感的设计、摄影、修图与影像创作者，建议保持关闭。\n• 若系统开启了「原彩显示 (True Tone)」或全局「夜览 (Night Shift)」，可能会与待机暖光产生环境光动态叠加。",
-                             "• This feature adjusts the hardware Gamma LUT for built-in screen isolation, ideal for night coding and reading.\n• Professional designers and photo/video editors are recommended to keep this disabled for absolute color accuracy.\n• If macOS True Tone or Night Shift is enabled, they may dynamically interact with standby warmth."))
+                    Text(loc("• 本特性通过底层 CoreGraphics 硬件查找表 (Gamma LUT) 实现单屏隔离，适合夜间防疲劳与暗光码字。\n• 对色彩高度敏感的设计、摄影、修图与影像创作者，建议保持关闭。\n• 应用暖光前会自动关闭系统级全局「夜览 (Night Shift)」，以保证外接屏幕保持纯白；如需夜览请在退出 Sirius 后手动开启。",
+                             "• This feature adjusts the hardware Gamma LUT for built-in screen isolation, ideal for night coding and reading.\n• Professional designers and photo/video editors are recommended to keep this disabled for absolute color accuracy.\n• The system-wide Night Shift is automatically turned off before warmth is applied so the external display stays neutral; re-enable it in System Settings after quitting Sirius if needed."))
                         .font(.system(size: 10.5))
                         .foregroundColor(.secondary)
                         .lineSpacing(3)
@@ -406,16 +387,13 @@ public struct SettingsView: View {
                         }
                         ColorTemperatureEngine.shared.emergencyReset()
                     }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.counterclockwise")
-                            Text(loc("立即复原色彩", "Reset Color"))
-                        }
-                        .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color(nsColor: .windowBackgroundColor))
-                        .cornerRadius(5)
-                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.primary.opacity(0.15), lineWidth: 1))
+                        Text(loc("立即复原色彩", "Reset Color"))
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color(nsColor: .windowBackgroundColor))
+                            .cornerRadius(5)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.primary.opacity(0.15), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
@@ -491,7 +469,7 @@ public struct SettingsView: View {
 
             // 全局快捷键
             VStack(alignment: .leading, spacing: 10) {
-                Toggle(isOn: $preferences.hotKeyEnabled) {
+                HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(loc("启用全局快捷键", "Enable Global Shortcut"))
                             .font(.system(size: 13, weight: .semibold))
@@ -499,15 +477,19 @@ public struct SettingsView: View {
                         Text(loc("随时按下快捷键，快速暂停或恢复调光功能（零权限，无需辅助功能授权）。", "Press shortcut anytime to quickly pause or resume dimming (zero permissions required)."))
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                }
-                .toggleStyle(.switch)
-                .onChange(of: preferences.hotKeyEnabled) { _, enabled in
-                    if enabled {
-                        HotKeyManager.shared.registerConfiguredHotKey()
-                    } else {
-                        HotKeyManager.shared.unregister()
-                    }
+                    Spacer(minLength: 12)
+                    Toggle("", isOn: $preferences.hotKeyEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .onChange(of: preferences.hotKeyEnabled) { _, enabled in
+                            if enabled {
+                                HotKeyManager.shared.registerConfiguredHotKey()
+                            } else {
+                                HotKeyManager.shared.unregister()
+                            }
+                        }
                 }
 
                 Divider()
@@ -570,7 +552,7 @@ public struct SettingsView: View {
 
             // 系统设置
             VStack(alignment: .leading, spacing: 10) {
-                Toggle(isOn: $preferences.launchAtLogin) {
+                HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(loc("登录开机自启动", "Launch at Login"))
                             .font(.system(size: 13, weight: .semibold))
@@ -578,13 +560,17 @@ public struct SettingsView: View {
                         Text(loc("开机登录 Mac 后在后台自动启动 Sirius（系统原生后台项管理）。", "Automatically start Sirius in the background when logging into Mac."))
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    Spacer(minLength: 12)
+                    Toggle("", isOn: $preferences.launchAtLogin)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
                 }
-                .toggleStyle(.switch)
 
                 Divider()
 
-                Toggle(isOn: $preferences.showInDock) {
+                HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(loc("在程序坞 (Dock) 常驻图标", "Show in Dock"))
                             .font(.system(size: 13, weight: .semibold))
@@ -592,9 +578,13 @@ public struct SettingsView: View {
                         Text(loc("开启后可在 Dock 栏看到图标；关闭后仅在顶部菜单栏显示。", "Shows app icon in Dock when enabled; menu bar only when disabled."))
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    Spacer(minLength: 12)
+                    Toggle("", isOn: $preferences.showInDock)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
                 }
-                .toggleStyle(.switch)
             }
             .padding(14)
             .background(Color(nsColor: .controlBackgroundColor))
@@ -633,7 +623,7 @@ public struct SettingsView: View {
 
             // 关于与重置
             HStack {
-                Text("Sirius v1.2.0 · Yaology")
+                Text("\(AppInfo.displayVersion) · Yaology")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
 

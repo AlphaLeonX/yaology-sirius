@@ -220,7 +220,9 @@ public struct BinaryOrbitView: View {
             return loc("MacBook 处于微光待机", "MacBook in ambient standby")
         case .waking: return loc("鼠标移回 · 即刻唤醒", "Cursor returned · Waking up")
         case .paused: return loc("调光引擎已暂停", "Dimming engine paused")
-        case .dormant(let r): return loc("待机中 (\(r))", "Standby (\(r))")
+        case .dormant(let r):
+            let localizedReason = SiriusStateMachine.State.localizedReason(r)
+            return loc("待机中 (\(localizedReason))", "Standby (\(localizedReason))")
         }
     }
 

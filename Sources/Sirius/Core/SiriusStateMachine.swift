@@ -18,16 +18,20 @@ public final class SiriusStateMachine: ObservableObject, @unchecked Sendable {
             return localizedDescription
         }
 
+        /// 将内部状态原因（中文内部标识）翻译为当前界面语言
+        public static func localizedReason(_ reason: String) -> String {
+            switch reason {
+            case "初始化": return loc("初始化", "Initializing")
+            case "单屏幕独立工作": return loc("单屏幕独立工作", "Single Display Mode")
+            case "未检测到内建屏幕": return loc("未检测到内建屏幕", "No Built-in Screen")
+            default: return reason
+            }
+        }
+
         public var localizedDescription: String {
             switch self {
             case .dormant(let reason):
-                let localizedReason: String
-                switch reason {
-                case "初始化": localizedReason = loc("初始化", "Initializing")
-                case "单屏幕独立工作": localizedReason = loc("单屏幕独立工作", "Single Display Mode")
-                case "未检测到内建屏幕": localizedReason = loc("未检测到内建屏幕", "No Built-in Screen")
-                default: localizedReason = reason
-                }
+                let localizedReason = State.localizedReason(reason)
                 return loc("待机 (\(localizedReason))", "Standby (\(localizedReason))")
             case .active:
                 return loc("伴星全亮 (焦点在 Mac)", "Companion Active (Focus on Mac)")
