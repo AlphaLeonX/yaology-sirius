@@ -21,15 +21,22 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     private(set) var isCurrentlyWarm: Bool = false
     private var currentWarmthProgress: Float = 0.0 // 0.0 (原生) ~ 1.0 (目标暖色)
 
-    private init() {
-        // 清理可能残留的系统级全局 Night Shift，确保外接大屏保持纯白自然色
-        disableSystemWideNightShiftIfAny()
+    /// 动画世代号：任何新的渲染请求都会递增，旧的定时器回调自动失效（防止旧动画覆写最新的色彩表）
+    private var renderEpoch: UInt64 = 0
 
+    /// 暖色 LUT 落盘标记：崩溃/强杀后下次启动可自动复原，避免屏幕永久偏暖
+    public static let amberLutAppliedKey = "sirius.amberLutApplied"
+
+    /// 落盘标记的本地缓存：避免 60fps 动画每帧重复写入 UserDefaults
+    private var cachedLutApplied: Bool?
+
+    private init() {
         // 捕获内建显示屏原生基准色彩表
         captureBaseline()
     }
 
     /// 确保关闭任何系统级全局 Night Shift（避免外置大屏受影响）
+    /// 仅在“即将应用暖色 LUT”时才调用：不启用琥珀微光的用户，系统夜览设置不会被我们改动。
     private func disableSystemWideNightShiftIfAny() {
         Bundle(path: "/System/Library/PrivateFrameworks/CoreBrightness.framework")?.load()
         if let clientClass = NSClassFromString("CBBlueLightClient") as? NSObject.Type {
@@ -43,7 +50,7 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
         }
     }
 
-    /// 捕获并记录当前内建屏幕未被修改的原生色彩基准表
+    /// 只允许在未处于暖色状态时捕获基准表，避免把上一次异常退出遗留的暖色表误当成“原生色彩”
     public func captureBaseline() {
         queue.async { [weak self] in
             guard let self = self else { return }
@@ -52,7 +59,7 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             self.lock.lock()
             defer { self.lock.unlock() }
 
-            if self.isCurrentlyWarm && !self.baselineRed.isEmpty {
+            if self.isCurrentlyWarm {
                 return
             }
 
@@ -77,7 +84,11 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             guard let self = self else { return }
             guard let displayID = DisplayBridge.getBuiltinDisplayID() else { return }
 
+            // 即将叠加暖色，先把系统全局夜览关掉，避免与外接屏产生叠加偏色
+            self.disableSystemWideNightShiftIfAny()
+
             self.lock.lock()
+            self.renderEpoch &+= 1
             self.animationTimer?.cancel()
             self.animationTimer = nil
 
@@ -103,7 +114,12 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
                 return
             }
 
+            // 即将叠加暖色，先把系统全局夜览关掉
+            self.disableSystemWideNightShiftIfAny()
+
             self.lock.lock()
+            self.renderEpoch &+= 1
+            let myEpoch = self.renderEpoch
             self.animationTimer?.cancel()
             self.animationTimer = nil
 
@@ -133,6 +149,11 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
 
             timer.setEventHandler { [weak self] in
                 guard let self = self else {
+                    timer.cancel()
+                    return
+                }
+
+                guard self.renderEpoch == myEpoch else {
                     timer.cancel()
                     return
                 }
@@ -177,6 +198,8 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             }
 
             self.lock.lock()
+            self.renderEpoch &+= 1
+            let myEpoch = self.renderEpoch
             self.animationTimer?.cancel()
             self.animationTimer = nil
 
@@ -209,6 +232,11 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
 
             timer.setEventHandler { [weak self] in
                 guard let self = self else {
+                    timer.cancel()
+                    return
+                }
+
+                guard self.renderEpoch == myEpoch else {
                     timer.cancel()
                     return
                 }
@@ -246,20 +274,27 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
     /// 强制瞬时复原内建屏幕色彩（硬件自愈与退出兜底）
     public func forceRestoreNative(displayID: CGDirectDisplayID? = nil) {
         lock.lock()
-        defer { lock.unlock() }
+        renderEpoch &+= 1
         animationTimer?.cancel()
         animationTimer = nil
+        lock.unlock()
 
         let id = displayID ?? DisplayBridge.getBuiltinDisplayID()
-        forceRestoreNativeSync(displayID: id)
+        // 与色彩渲染队列串行：确保正在执行的动画帧写完后，最后落盘的一定是“原生色彩”
+        queue.sync {
+            forceRestoreNativeSync(displayID: id)
+        }
+        lock.lock()
         self.isCurrentlyWarm = false
         self.currentWarmthProgress = 0.0
+        lock.unlock()
         print("[Sirius] ColorEngine: Builtin screen color completely restored to native state.")
     }
 
     /// 紧急复原内建屏幕色彩并重置系统 ColorSync（供用户一键排障与容灾自愈）
     public func emergencyReset() {
         lock.lock()
+        renderEpoch &+= 1
         animationTimer?.cancel()
         animationTimer = nil
         baselineRed.removeAll()
@@ -270,16 +305,20 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
         currentWarmthProgress = 0.0
         lock.unlock()
 
-        if let displayID = DisplayBridge.getBuiltinDisplayID() {
-            let capacity: UInt32 = 256
-            var linear = [CGGammaValue](repeating: 0, count: Int(capacity))
-            for i in 0..<Int(capacity) {
-                linear[i] = CGGammaValue(i) / CGGammaValue(capacity - 1)
+        // 同步等待在途动画帧写完，再做全局复原，避免旧帧把暖色表又写回硬件
+        queue.sync {
+            if let displayID = DisplayBridge.getBuiltinDisplayID() {
+                let capacity: UInt32 = 256
+                var linear = [CGGammaValue](repeating: 0, count: Int(capacity))
+                for i in 0..<Int(capacity) {
+                    linear[i] = CGGammaValue(i) / CGGammaValue(capacity - 1)
+                }
+                CGSetDisplayTransferByTable(displayID, capacity, linear, linear, linear)
             }
-            CGSetDisplayTransferByTable(displayID, capacity, linear, linear, linear)
+            CGDisplayRestoreColorSyncSettings()
         }
-        CGDisplayRestoreColorSyncSettings()
 
+        Self.setLutApplied(false, cached: &cachedLutApplied)
         disableSystemWideNightShiftIfAny()
         captureBaseline()
 
@@ -301,6 +340,14 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
             }
             CGSetDisplayTransferByTable(id, capacity, linear, linear, linear)
         }
+        Self.setLutApplied(false, cached: &cachedLutApplied)
+    }
+
+    /// 记录 / 清除“暖色 LUT 已写入硬件”标记（崩溃或强杀退出后用于下次启动自愈）
+    private static func setLutApplied(_ applied: Bool, cached: inout Bool?) {
+        guard cached != applied else { return }
+        cached = applied
+        UserDefaults.standard.set(applied, forKey: amberLutAppliedKey)
     }
 
     private func captureBaselineInternal(displayID: CGDirectDisplayID) {
@@ -341,5 +388,9 @@ public final class ColorTemperatureEngine: @unchecked Sendable {
         }
 
         CGSetDisplayTransferByTable(displayID, count, newR, newG, newB)
+
+        // 标记硬件 LUT 是否处于“已被调色”状态，供下次启动自愈使用
+        let isNative = rMult >= 0.999 && gMult >= 0.999 && bMult >= 0.999
+        Self.setLutApplied(!isNative, cached: &cachedLutApplied)
     }
 }

@@ -45,8 +45,10 @@ public struct HotKeyShortcut: Equatable {
             modString += "⌘"
         }
 
-        // 如果没有修饰键，或者只按了修饰键本身，不构成有效快捷键
-        guard carbonMods != 0 else { return nil }
+        // 必须包含 Command / Option / Control 之一：
+        // 仅 ⇧Shift 或仅 ⇧+字符 的全局热键会无条件截获用户打字输入（例如 ⇧S 会永远打不出大写 S），必须拒绝。
+        let strongModifier: UInt32 = UInt32(cmdKey) | UInt32(optionKey) | UInt32(controlKey)
+        guard carbonMods & strongModifier != 0 else { return nil }
 
         let kCode = UInt32(event.keyCode)
         guard let keyName = stringForKeyCode(kCode) else { return nil }

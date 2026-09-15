@@ -61,8 +61,13 @@ if CommandLine.arguments.contains("--reset-color") {
 // MARK: - 应用主代理
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 启动自愈：若未开启实验室微光，自愈复原任何异常偏色残留
-        if !SiriusPreferences.shared.amberAmbientEnabled {
+        // 启动自愈：
+        // 1) 上次运行在暖色 LUT 生效时异常退出（崩溃 / 强杀）→ 先彻底复原色彩，避免屏幕持续偏暖；
+        // 2) 未开启实验室微光 → 复原任何异常偏色残留。
+        if UserDefaults.standard.bool(forKey: ColorTemperatureEngine.amberLutAppliedKey) {
+            print("[Sirius] Detected stale amber LUT from previous session — performing full color recovery.")
+            ColorTemperatureEngine.shared.emergencyReset()
+        } else if !SiriusPreferences.shared.amberAmbientEnabled {
             ColorTemperatureEngine.shared.forceRestoreNative()
         }
 
@@ -122,7 +127,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let keepBtn = alert.addButton(withTitle: loc("保留当前设置并退出", "Keep Settings and Quit"))
         keepBtn.keyEquivalent = "\r"
 
-        alert.addButton(withTitle: loc("重置为默认值并退出", "Reset to Defaults and Quit"))
+        let resetBtn = alert.addButton(withTitle: loc("重置为默认值并退出", "Reset to Defaults and Quit"))
 
         alert.showsSuppressionButton = true
         alert.suppressionButton?.title = loc("下次不再询问 (记住我的选择)", "Do not ask again (Remember choice)")
@@ -131,19 +136,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let response = alert.runModal()
         let shouldRemember = alert.suppressionButton?.state == .on
 
-        if response == .alertFirstButtonReturn {
-            // 保留当前设置
-            if shouldRemember {
-                prefs.suppressResetOnQuitPrompt = true
-                prefs.resetOnQuitChoice = false
-            }
-        } else if response == .alertSecondButtonReturn {
+        // 破坏性操作必须由“真实鼠标点击”触发：
+        // 登出 / 关机 / 脚本等非交互式退出时，模态可能被系统中断并返回意料之外的按钮响应，
+        // 因此额外校验鼠标是否确实落在「重置」按钮上；否则一律走“保留设置”安全分支。
+        let resetButtonFrame = alert.window.convertToScreen(resetBtn.convert(resetBtn.bounds, to: nil))
+        let userConfirmedReset = response == .alertSecondButtonReturn && resetButtonFrame.contains(NSEvent.mouseLocation)
+
+        if userConfirmedReset {
             // 重置为默认值
             prefs.resetToDefaults()
             if shouldRemember {
                 prefs.suppressResetOnQuitPrompt = true
                 prefs.resetOnQuitChoice = true
             }
+        } else if shouldRemember {
+            // 保留当前设置
+            prefs.suppressResetOnQuitPrompt = true
+            prefs.resetOnQuitChoice = false
         }
 
         return .terminateNow
