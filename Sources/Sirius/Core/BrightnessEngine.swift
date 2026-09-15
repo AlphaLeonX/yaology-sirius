@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import AppKit
 
 /// 负责处理平滑贝塞尔插值调光、硬件亮度追踪与防撕裂动画
 public final class BrightnessEngine: @unchecked Sendable {
@@ -14,12 +15,19 @@ public final class BrightnessEngine: @unchecked Sendable {
         SiriusPreferences.shared.userActiveBrightness
     }
 
-    /// 当前正在渲染的目标亮度
-    private var currentTargetBrightness: Float = 0.80
-
     private init() {
         let prefs = SiriusPreferences.shared
-        if let builtinID = DisplayBridge.getBuiltinDisplayID(),
+
+        // 硬件自愈只允许由「唯一实例」执行：若已有另一个 Sirius 在运行（如 CLI --check、
+        // 源码调试实例），不得抢夺其正在控制的背光，避免破坏正在生效的暗光/唤醒状态。
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.yaology.sirius.app"
+        let myPID = ProcessInfo.processInfo.processIdentifier
+        let anotherInstanceIsRunning = NSRunningApplication
+            .runningApplications(withBundleIdentifier: bundleID)
+            .contains { $0.processIdentifier != myPID }
+
+        if !anotherInstanceIsRunning,
+           let builtinID = DisplayBridge.getBuiltinDisplayID(),
            let current = DisplayBridge.getBrightness(displayID: builtinID) {
             let floor = prefs.ambientFloor
             // 仅当当前硬件背光显著高于底噪时，才同步初始偏好设置
@@ -32,7 +40,6 @@ public final class BrightnessEngine: @unchecked Sendable {
                 print("[Sirius] Startup Self-Healing: Restored dimmed hardware backlight to safe level: \(String(format: "%.1f%%", safeBrightness * 100))")
             }
         }
-        self.currentTargetBrightness = prefs.userActiveBrightness
     }
 
     /// 在用户处于内置屏幕活跃工作态时，捕获当前真实的背光亮度作为基准
@@ -97,7 +104,6 @@ public final class BrightnessEngine: @unchecked Sendable {
 
             let startBrightness = DisplayBridge.getBrightness(displayID: displayID) ?? self.userActiveBrightness
             let clampedTarget = max(0.0, min(1.0, target))
-            self.currentTargetBrightness = clampedTarget
             self.lock.unlock()
 
             // 如果距离极小或时长极短，直接一步到位

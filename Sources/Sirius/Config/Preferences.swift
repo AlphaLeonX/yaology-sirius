@@ -223,9 +223,9 @@ public final class SiriusPreferences: ObservableObject {
         }
     }
 
-    /// 暂停指定秒数
+    /// 暂停指定秒数（duration <= 0 表示无限期暂停，直到用户手动恢复）
     public func pause(for duration: TimeInterval) {
-        self.pauseUntil = Date().addingTimeInterval(duration)
+        self.pauseUntil = duration > 0 ? Date().addingTimeInterval(duration) : nil
         self.isPaused = true
     }
 

@@ -1,11 +1,15 @@
 import Carbon
 import Foundation
+import Combine
 
 /// 纯原生 Carbon 全局快捷键管理器（零权限、无需输入监视/辅助功能权限）
-public final class HotKeyManager: @unchecked Sendable {
+public final class HotKeyManager: ObservableObject, @unchecked Sendable {
     public static let shared = HotKeyManager()
 
     public var onHotKeyTriggered: (() -> Void)?
+
+    /// 当前热键是否已成功注册（被其它 App 占用时为 false，设置页据此提示用户）
+    @Published public private(set) var isRegistered: Bool = false
 
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
@@ -28,7 +32,9 @@ public final class HotKeyManager: @unchecked Sendable {
     }
 
     /// 注册指定的全局快捷键
-    public func register(keyCode: UInt32, modifiers: UInt32) {
+    /// - Returns: 是否注册成功（组合键被其它 App 占用时返回 false）
+    @discardableResult
+    public func register(keyCode: UInt32, modifiers: UInt32) -> Bool {
         unregister()
 
         var eventType = EventTypeSpec(
@@ -66,7 +72,10 @@ public final class HotKeyManager: @unchecked Sendable {
             &eventHandler
         )
 
-        guard status == noErr else { return }
+        guard status == noErr else {
+            publishRegistrationState(false)
+            return false
+        }
 
         let gHotKeyID = EventHotKeyID(signature: OSType(0x53495249), id: hotKeyID) // 'SIRI'
         let regStatus = RegisterEventHotKey(
@@ -80,14 +89,30 @@ public final class HotKeyManager: @unchecked Sendable {
 
         if regStatus != noErr {
             hotKeyRef = nil
+            publishRegistrationState(false)
             print("[Sirius] Failed to register HotKey: keyCode=\(keyCode), modifiers=\(modifiers)")
+            return false
         } else {
+            publishRegistrationState(true)
             print("[Sirius] HotKey registered: keyCode=\(keyCode), modifiers=\(modifiers)")
+            return true
+        }
+    }
+
+    /// 在主线程发布注册状态，供 SwiftUI 设置页实时展示冲突提示
+    private func publishRegistrationState(_ registered: Bool) {
+        if Thread.isMainThread {
+            isRegistered = registered
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.isRegistered = registered
+            }
         }
     }
 
     /// 注册默认全局快捷键（⌥ + S）
-    public func registerDefaultHotKey() {
+    @discardableResult
+    public func registerDefaultHotKey() -> Bool {
         register(keyCode: UInt32(kVK_ANSI_S), modifiers: UInt32(optionKey))
     }
 
@@ -101,5 +126,6 @@ public final class HotKeyManager: @unchecked Sendable {
             RemoveEventHandler(handler)
             eventHandler = nil
         }
+        publishRegistrationState(false)
     }
 }

@@ -14,6 +14,9 @@ public final class AutoBrightnessManager: @unchecked Sendable {
     private var savedAutoBrightnessState: Bool?
     private let lock = NSLock()
 
+    /// 落盘标记：本次冻结是由 Sirius 造成的（崩溃/强杀后下次启动自愈用）
+    private static let frozenByUsKey = "sirius.autoBrightnessFrozenByUs"
+
     private let msgSendCopy: MsgSendCopyProperty?
     private let msgSendSet: MsgSendSetProperty?
     private let msgSendBool: MsgSendNoArgBool?
@@ -89,7 +92,9 @@ public final class AutoBrightnessManager: @unchecked Sendable {
         let current = isAutoBrightnessEnabled()
         if current {
             savedAutoBrightnessState = true
-            setAutoBrightnessEnabled(false)
+            if setAutoBrightnessEnabled(false) {
+                UserDefaults.standard.set(true, forKey: Self.frozenByUsKey)
+            }
         } else {
             savedAutoBrightnessState = false
         }
@@ -104,6 +109,17 @@ public final class AutoBrightnessManager: @unchecked Sendable {
         if originalState {
             setAutoBrightnessEnabled(true)
         }
+        UserDefaults.standard.set(false, forKey: Self.frozenByUsKey)
         savedAutoBrightnessState = nil
+    }
+
+    /// 启动自愈：上次异常退出（崩溃 / 强杀）若留下“被我们关闭的系统自动亮度”，则恢复用户原本的开启状态
+    public func performStartupSelfHealing() {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: Self.frozenByUsKey) else { return }
+        defaults.set(false, forKey: Self.frozenByUsKey)
+        if setAutoBrightnessEnabled(true) {
+            print("[Sirius] Startup Self-Healing: Restored system auto-brightness left disabled by a previous session.")
+        }
     }
 }

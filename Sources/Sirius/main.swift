@@ -34,10 +34,19 @@ if CommandLine.arguments.contains("--check") || CommandLine.arguments.contains("
     let isAutoEnabled = autoBrightness.isAutoBrightnessEnabled()
     print("  ✓ [AutoBrightness] 系统自动亮度检测: \(isAutoEnabled ? "已启用 (支持智能待机托管)" : "未启用/手动")")
 
-    // 5. Carbon 全局热键测试
-    HotKeyManager.shared.registerDefaultHotKey()
-    HotKeyManager.shared.unregister()
-    print("  ✓ [HotKey] Carbon ⌥+S 全局热键系统注册与注销: 正常")
+    // 5. Carbon 全局热键测试（若已有实例在运行则跳过实际注册，避免抢占它正在使用的 ⌥S）
+    let bundleID = Bundle.main.bundleIdentifier ?? "com.yaology.sirius.app"
+    let myPID = ProcessInfo.processInfo.processIdentifier
+    let otherInstanceRunning = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        .contains { $0.processIdentifier != myPID }
+
+    if otherInstanceRunning {
+        print("  ! [HotKey] 检测到已有 Sirius 实例在运行，跳过实际注册/注销（避免影响其 ⌥S 全局热键）")
+    } else {
+        let hotKeyOK = HotKeyManager.shared.registerDefaultHotKey()
+        HotKeyManager.shared.unregister()
+        print("  ✓ [HotKey] Carbon ⌥+S 全局热键系统注册与注销: \(hotKeyOK ? "正常" : "失败 (可能被其它 App 占用)")")
+    }
 
     // 6. 状态机初始状态
     let sm = SiriusStateMachine.shared
@@ -70,6 +79,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else if !SiriusPreferences.shared.amberAmbientEnabled {
             ColorTemperatureEngine.shared.forceRestoreNative()
         }
+
+        // 启动自愈：若上次异常退出时关闭了系统自动亮度，先恢复用户原本的开启状态
+        AutoBrightnessManager.shared.performStartupSelfHealing()
 
         // 根据用户偏好设置激活策略（默认显示在 Dock 栏）
         SiriusPreferences.shared.updateActivationPolicy()

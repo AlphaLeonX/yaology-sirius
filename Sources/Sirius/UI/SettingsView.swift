@@ -6,6 +6,7 @@ import AppKit
 public struct SettingsView: View {
     @ObservedObject var preferences = SiriusPreferences.shared
     @ObservedObject var locManager = LocalizationManager.shared
+    @ObservedObject var hotKeyManager = HotKeyManager.shared
     @State private var selectedTab: SettingsTab = .dimming
     @State private var isRecordingHotKey: Bool = false
     @State private var hotKeyLocalMonitor: Any?
@@ -543,6 +544,25 @@ public struct SettingsView: View {
                     }
                     .buttonStyle(.bordered)
                     .font(.system(size: 11))
+                }
+
+                // 注册冲突提示：组合键被其它 App 占用时保留用户可见的状态反馈
+                if preferences.hotKeyEnabled && !hotKeyManager.isRegistered {
+                    HStack(spacing: 6) {
+                        Text(loc("不可用", "Unavailable"))
+                            .font(.system(size: 9.5, weight: .semibold))
+                            .tracking(0.2)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1.5)
+                            .background(Color.primary.opacity(0.06))
+                            .foregroundColor(Color(red: 0.98, green: 0.65, blue: 0.22))
+                            .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.primary.opacity(0.08), lineWidth: 1))
+                            .cornerRadius(3)
+                        Text(loc("该组合键已被其它 App 占用，请重新录制一个快捷键。", "This shortcut is already taken by another app — please record a different one."))
+                            .font(.system(size: 10.5))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
             .padding(14)
