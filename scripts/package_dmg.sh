@@ -4,7 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-VERSION="1.2.0"
+# 版本号单一数据源：见 scripts/version.sh（正式发布取 git tag，开发构建自动加 -dev.N 后缀）
+# shellcheck source=version.sh
+source "${SCRIPT_DIR}/version.sh"
+VERSION="$(resolve_sirius_version "${ROOT_DIR}")"
 DMG_NAME="Sirius-v${VERSION}.dmg"
 ZIP_NAME="Sirius-v${VERSION}.zip"
 DIST_DIR="${ROOT_DIR}/dist"
@@ -14,7 +17,7 @@ OUTPUT_DMG="${DIST_DIR}/${DMG_NAME}"
 OUTPUT_ZIP="${DIST_DIR}/${ZIP_NAME}"
 CHECKSUMS="${DIST_DIR}/checksums.txt"
 
-echo "==> Building latest Sirius.app..."
+echo "==> Building latest Sirius.app (version ${VERSION})..."
 bash "${SCRIPT_DIR}/build_app.sh"
 
 echo "==> Ad-hoc code signing Sirius.app for Apple Silicon..."
@@ -31,16 +34,16 @@ cp -R "${APP_PATH}" "${STAGING_DIR}/"
 ln -s /Applications "${STAGING_DIR}/Applications"
 
 # 创建首次打开说明 README.txt
-cat << 'README_EOF' > "${STAGING_DIR}/首次安装必读.txt"
+cat << README_EOF > "${STAGING_DIR}/首次安装必读.txt"
 =====================================================
-  Sirius（天狼星）Mac 原生多屏自适应调光引擎 v1.2.0
+  Sirius（天狼星）Mac 原生多屏自适应调光引擎 v${VERSION}
 =====================================================
 
 【安装方法】
 1. 将左侧的 Sirius.app 拖入右侧的 Applications 文件夹即可完成安装。
 
 【首次打开提示“已损坏”或“无法验证开发者”？】
-由于本软件为开源/个人独立构建，未支付苹果每年 $99 的商业公证税，
+由于本软件为开源/个人独立构建，未支付苹果每年 \$99 的商业公证税，
 macOS 会对从网络下载的文件启用严格的 Gatekeeper 隔离保护。
 
 请直接打开系统的「终端 (Terminal.app)」，复制并粘贴运行以下命令：

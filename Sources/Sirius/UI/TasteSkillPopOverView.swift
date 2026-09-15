@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-/// 遵循 Yaology 极简美学的悬浮控制面板 (v1.2.0)
+/// 遵循 Yaology 极简美学的悬浮控制面板
 /// 完美自适应 macOS 浅色/深色主题，全界面支持中英双语与即时护眼预览
 public struct TasteSkillPopOverView: View {
     @ObservedObject var stateMachine = SiriusStateMachine.shared
@@ -178,7 +178,7 @@ public struct TasteSkillPopOverView: View {
 
             // MARK: - 底部栏：版本信息 & 退出
             HStack(alignment: .center) {
-                Text("Sirius v1.2.0 · α CMa")
+                Text("\(AppInfo.displayVersion) · α CMa")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .monospacedDigit()
                     .foregroundColor(.secondary.opacity(0.7))

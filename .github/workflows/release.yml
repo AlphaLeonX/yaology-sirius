@@ -32,9 +32,12 @@ jobs:
           fetch-depth: 0
 
       - name: Build and Package Sirius (DMG & Zip)
+        env:
+          VERSION: ${{ github.ref_name || inputs.tag }}
         run: |
           chmod +x scripts/*.sh
-          bash scripts/package_dmg.sh
+          # 统一以 git tag 作为发布版本号，保证 DMG / Zip / Info.plist / 应用内版本完全一致
+          VERSION="${VERSION#v}" bash scripts/package_dmg.sh
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

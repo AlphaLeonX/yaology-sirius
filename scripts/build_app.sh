@@ -4,11 +4,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-echo "==> Building Sirius in release mode..."
+# 版本号单一数据源：见 scripts/version.sh（正式发布取 git tag，开发构建自动加 -dev.N 后缀）
+# shellcheck source=version.sh
+source "${SCRIPT_DIR}/version.sh"
+VERSION="$(resolve_sirius_version "${ROOT_DIR}")"
+BUILD_NUMBER="$(resolve_sirius_build_number "${ROOT_DIR}")"
+
+APP_NAME="Sirius"
+
+echo "==> Building Sirius in release mode (version ${VERSION}, build ${BUILD_NUMBER})..."
 cd "${ROOT_DIR}"
 swift build -c release
 
-APP_NAME="Sirius"
 BUILD_BIN="${ROOT_DIR}/.build/release/${APP_NAME}"
 DIST_DIR="${ROOT_DIR}/dist"
 APP_BUNDLE="${DIST_DIR}/${APP_NAME}.app"
@@ -29,7 +36,7 @@ if [ -f "${ROOT_DIR}/assets/AppIcon.icns" ]; then
     cp "${ROOT_DIR}/assets/AppIcon.icns" "${RESOURCES_DIR}/AppIcon.icns"
 fi
 
-cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
+cat << EOF > "${CONTENTS_DIR}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -49,9 +56,9 @@ cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.2.0</string>
+    <string>${VERSION}</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>${BUILD_NUMBER}</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>LSUIElement</key>

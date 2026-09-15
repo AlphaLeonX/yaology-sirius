@@ -33,18 +33,18 @@ Sirius communicates directly with macOS display hardware controllers (`DisplaySe
 - **True Cooling & Battery Savings**: Turns down the actual LEDs from the hardware layer, keeping your Mac cool and preserving battery health;
 - **Zero Screenshot Interference**: No virtual overlay windows are drawn—your screenshots and macOS color management stay pixel-perfect.
 
-### 2. Sub-Millisecond Cursor Sensing
-- **Instant Wake (0ms)**: The millisecond your cursor crosses back onto your MacBook screen, brightness smoothly eases in within 0.15s. By the time your eyes shift focus, the screen is already fully restored;
+### 2. High-Responsiveness Cursor Sensing
+- **Instant Wake (~0.1s)**: The cursor position is polled every 100ms; the moment it crosses back onto your MacBook screen, brightness eases in within 0.15s — the screen is restored by the time your eyes shift focus;
 - **Anti-Jitter Cooldown**: Moving your cursor back to your external monitor initiates a 3.0s grace period (configurable), preventing annoying flicker from accidental edge brushes, before smoothly easing down in 0.4s.
 
 ### 3. Ambient Floor
-- Defaults to a comfortable 12% ambient glow (customizable from 0% to 30%), preventing the jarring disorientation of an abrupt pitch-black void;
+- Defaults to a comfortable 12% ambient glow (customizable from 0% to 100%), preventing the jarring disorientation of an abrupt pitch-black void;
 - Slack, WeChat, and system notification banners remain readable at a glance.
 
 ### 4. Zero Permissions Required (Zero-Permission)
 - Built entirely with native Cocoa APIs (`NSEvent.mouseLocation` and Carbon hotkeys);
 - **Never asks for sensitive Accessibility, Screen Recording, or Input Monitoring permissions**;
-- Pure Swift + AppKit: ~15MB RAM footprint, virtually 0.00% idle CPU usage.
+- Pure Swift + AppKit: ~50MB memory footprint, virtually 0.00% idle CPU usage.
 
 ### 5. Seamless Shortcuts & Controls
 - **Global Hotkey**: Press `⌥ + S` (Option + S) at any time to toggle dimming on/off;
@@ -86,6 +86,11 @@ make run
 make app
 ```
 
+> **Build requirement**: Xcode (or Command Line Tools with matching Swift toolchain) is required, because SwiftUI's `@State` is a macro since the macOS 27 SDK. With Command Line Tools only, build against the 26.5 SDK as a workaround:
+> ```bash
+> SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk make release
+> ```
+
 ---
 
 ## ❓ FAQ
@@ -98,6 +103,12 @@ A: At 0%, the internal backlight completely powers off (true pitch black) when y
 
 **Q: Why doesn't Sirius require Accessibility permissions?**  
 A: Sirius only queries the global cursor coordinates using public macOS mouse APIs to check whether the cursor lies within the MacBook's screen bounds. It does not monitor keystrokes, capture pixels, or intercept system events.
+
+**Q: The menu bar icon is missing even though “Show in Menu Bar” is enabled in System Settings.**  
+A: macOS only controls system-level visibility; if you use a third-party menu bar manager (Ice, Thaw, Bartender, Hidden Bar…), it can move Sirius into its own hidden section. Open the manager's settings and move **Sirius** to the visible section (or quit the manager briefly to confirm). Sirius's menu bar item itself is registered normally.
+
+**Q: Does the Amber Ambient feature touch my system Night Shift setting?**  
+A: Yes — while Amber Ambient is actually applying warmth to the built-in display, Sirius turns off the system-wide **Night Shift** so the external display stays neutral white. Sirius never reads/knows your previous Night Shift state, so re-enable it in System Settings after quitting if needed. Night Shift is not touched at all when Amber Ambient is disabled.
 
 ---
 
